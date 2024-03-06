@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Xml.Serialization;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -8,9 +9,9 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-
+    
     [Header("Component")]
-    [SerializeField] new Rigidbody2D rigidbody;
+    [SerializeField] Rigidbody2D rb;
     [SerializeField] new SpriteRenderer renderer;
     [SerializeField] Animator animator;
 
@@ -20,14 +21,23 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float breakSpeed;
     [SerializeField] public float jumpSpeed;
     [SerializeField] int hp;
-    [SerializeField] int dashCount;
-    [SerializeField] float dashPower;
 
-    
-    private bool isGround = true;
+    [Header("DashStatus")]
+    [SerializeField] int dashCount;
+    [SerializeField] float dashSpeed;
+    [SerializeField] float dashCoolTime;
+    [SerializeField] float dashTime;
+    [SerializeField] bool isDash;
+    [SerializeField] bool dashMode;
+    [SerializeField] TrailRenderer trailRenderer;
+
+
+
+    private bool isGround;
     private bool isDown;
-    private float dashCoolTime;
     private Vector2 moveDir;
+    private Vector3 mouseDir;
+    private Vector3 flipVec = new Vector3(-1, 1, 1);
 
     [SerializeField] public LayerMask groundCheckLayer;
 
@@ -37,6 +47,10 @@ public class PlayerController : MonoBehaviour
 
     public PlayerInput playerInput;
     private StateMachine<State> stateMachine = new StateMachine<State>();
+
+    /******************************************************
+     *                      Unity Events
+     ******************************************************/
     private void Start()
     {
         stateMachine.AddState(State.Idle, new IdleState());
@@ -56,23 +70,35 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Move();
-        stateMachine.FixedUpdate();
+        Flip();
+        animator.SetBool("Jump", !isGround);
+        //stateMachine.FixedUpdate();
     }
+
+    void Flip()
+    {
+        if(rb.transform.position.x > mouseDir.x)
+        {
+            transform.localScale = flipVec;
+        }
+        else
+        {
+            transform.localScale = Vector3.one;
+        }
+    }
+
+    /********************************************************
+     *          Input System Actions
+     ********************************************************/
 
     void OnMove(InputValue value)
     {
         moveDir = value.Get<Vector2>();
 
-        if (moveDir.x < 0)
+        if (moveDir.x != 0 && isGround)
         {
-            renderer.flipX = true;
-            animator.SetBool("Run", true);
-
-        }
-        else if (moveDir.x > 0)
-        {
-            renderer.flipX = false;
             animator.SetBool("Run", true);
         }
         else
@@ -85,15 +111,8 @@ public class PlayerController : MonoBehaviour
     {
         if (value.isPressed && isGround)
         {
-            Jump();
+            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
         }
-    }
-    void Jump()
-    {
-        animator.SetTrigger("Jump");
-        Vector2 vel = rigidbody.velocity;
-        vel.y = jumpSpeed;
-        rigidbody.velocity = vel;
     }
 
     void OnDownJump(InputValue value)
@@ -110,57 +129,105 @@ public class PlayerController : MonoBehaviour
     void Move()
     {
   
-        if (moveDir.x < 0 && rigidbody.velocity.x > -maxSpeed) 
+        if (moveDir.x < 0 && rb.velocity.x > -maxSpeed) 
         {
-            rigidbody.AddForce(Vector2.right * moveDir.x * moveSpeed);
+            rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
         }
-        else if (moveDir.x > 0 && rigidbody.velocity.x < maxSpeed)
+        else if (moveDir.x > 0 && rb.velocity.x < maxSpeed)
         {
 
-            rigidbody.AddForce(Vector2.right * moveDir.x * moveSpeed);
+            rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
         }
-        else if (moveDir.x == 0 && rigidbody.velocity.x > 0) 
+        else if (moveDir.x == 0 && rb.velocity.x > 0) 
         {
-            rigidbody.AddForce(Vector2.left * breakSpeed);
+            rb.AddForce(Vector2.left * breakSpeed);
         }
-        else if (moveDir.x == 0 && rigidbody.velocity.x < 0)
+        else if (moveDir.x == 0 && rb.velocity.x < 0)
         {
-            rigidbody.AddForce(Vector2.right * breakSpeed);
+            rb.AddForce(Vector2.right * breakSpeed);
         }
 
-        if (rigidbody.velocity.y < -maxSpeed * 2) 
+        if (rb.velocity.y < -maxSpeed * 2) 
         {
-            Vector2 vel = rigidbody.velocity;
+            Vector2 vel = rb.velocity;
             vel.y = -maxSpeed * 2;
-            rigidbody.velocity = vel;
+            rb.velocity = vel;
         }
-
-        animator.SetFloat("YSpeed", rigidbody.velocity.y);
     }
 
+    //Dash 마우스 에임기준 대쉬랑 moveDir 기준 Dash 두가지 옵션 있음
     void OnDash(InputValue value)
     {
         if (value.isPressed)
         {
             if(dashCount > 0)
             {
-
-                Vector2 dashDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector2 playerPos = new Vector2(rigidbody.transform.position.x, rigidbody.transform.position.y);
-                dashDir = dashDir - playerPos;
-                Debug.Log(dashDir);
-                rigidbody.velocity = Vector2.zero;
-
-                 rigidbody.AddForce(dashDir.normalized*dashPower, ForceMode2D.Impulse);
-                //dashCount--;
+                if (dashMode)
+                {
+                    Vector3 dashDir = mouseDir;
+                    dashDir.z = 0;
+                    dashDir = dashDir - transform.position;
+                    StartCoroutine(DashWithMousePos(dashDir));
+                }
+                else
+                {
+                    StartCoroutine(DashWithMoveDir());
+                }
+                //rigidbody.AddForce(dashDir.normalized*dashPower, ForceMode2D.Impulse);
             }
         }
     }
 
-    IEnumerator DashCoolTimeRoutine()
+    
+    IEnumerator DashWithMousePos(Vector3 dashDir)
     {
+        isDash = true;
+        dashCount--;
+        float orginGravityScale = rb.gravityScale;
+        // rb.gravityScale = 0f;
+        trailRenderer.emitting = true;
+        rb.velocity = dashDir.normalized * dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
+        yield return new WaitForSeconds(dashTime);
+        rb.gravityScale = orginGravityScale;
+        trailRenderer.emitting = false;
+        isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
+    }
+
+    IEnumerator DashWithMoveDir()
+    {
+        isDash = true;
+        dashCount--;
+        float orginGravityScale = rb.gravityScale;
+        //rb.gravityScale = 0f;
+        trailRenderer.emitting = true;
+        rb.velocity = moveDir * dashSpeed;
+        yield return new WaitForSeconds(dashTime);
+        rb.gravityScale = orginGravityScale;
+        trailRenderer.emitting = false;
+        isDash = false;
+        yield return new WaitForSeconds(dashCoolTime);
+        dashCount++;
+    }
+
+
+    /********************************************************
+     *              OnCollider Event
+     ********************************************************/
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        
+        isGround = true;
+        Debug.Log(isGround);
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        
+        isGround = false;
+        Debug.Log(isGround);
     }
 
     #region Ex)StateMachine
