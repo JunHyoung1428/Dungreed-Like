@@ -214,7 +214,7 @@ public class PlayerController : MonoBehaviour
         isDash = true;
         dashCount--;
 
-        float dashDis = 4.0f;
+        float dashDis = 4.0f; 
         Vector3 startingPos = transform.position;
         Vector3 moveTarget = startingPos + Vector3.ClampMagnitude(dashDir, dashDis);
         float dis = Vector3.Distance(transform.position, moveTarget);
