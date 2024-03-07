@@ -154,17 +154,20 @@ public class PlayerController : MonoBehaviour
         if (value.isPressed)
         {
             if(dashCount > 0)
-            {
-                if (dashMode)
-                {
-                    Vector3 dashDir = mouseDir;
+            {  
+                Vector3 dashDir = mouseDir;
                     dashDir.z = 0;
                     dashDir = dashDir - transform.position;
+                if (dashMode)
+                {
+                  
                     StartCoroutine(DashWithMousePos(dashDir));
+                    
                 }
                 else
                 {
-                    StartCoroutine(DashWithMoveDir());
+                    StartCoroutine(NewDashRoutine(dashDir));
+                    //StartCoroutine(DashWithMoveDir());
                 }
                 //rigidbody.AddForce(dashDir.normalized*dashPower, ForceMode2D.Impulse);
             }
@@ -199,6 +202,32 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = orginGravityScale;
         trailRenderer.emitting = false;
+        isDash = false;
+        yield return new WaitForSeconds(dashCoolTime);
+        dashCount++;
+    }
+
+    //조작감 개선을 위해 다른 방식 테스트
+    // lerp하게 고정 좌표로 position 변경
+    IEnumerator NewDashRoutine(Vector3 dashDir)
+    {
+        isDash = true;
+        dashCount--;
+
+        float dashDis = 4.0f;
+        Vector3 startingPos = transform.position;
+        Vector3 moveTarget = startingPos + Vector3.ClampMagnitude(dashDir, dashDis);
+        float dis = Vector3.Distance(transform.position, moveTarget);
+        float step = (dashSpeed / dis) * Time.deltaTime;
+        float time = 0f;
+
+
+        while (time <= dashTime)
+        {
+            time += step;
+            rb.MovePosition(Vector3.Lerp(startingPos, moveTarget, time));
+            yield return new WaitForFixedUpdate();
+        }
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
