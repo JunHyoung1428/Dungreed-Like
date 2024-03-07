@@ -12,7 +12,7 @@ public class PlayerController : MonoBehaviour
     
     [Header("Component")]
     [SerializeField] Rigidbody2D rb;
-    [SerializeField] new SpriteRenderer renderer;
+    [SerializeField] SpriteRenderer spriteRenderer;
     [SerializeField] Animator animator;
 
     [Header("Property")]
@@ -60,21 +60,14 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        stateMachine.Update();
+        //stateMachine.Update();
     }
-
-    private void LateUpdate()
-    {
-        stateMachine.LateUpdate();
-    }
-
     private void FixedUpdate()
     {
         mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Move();
         Flip();
         animator.SetBool("Jump", !isGround);
-        //stateMachine.FixedUpdate();
     }
 
     void Flip()
@@ -217,17 +210,13 @@ public class PlayerController : MonoBehaviour
      ********************************************************/
 
     private void OnCollisionEnter2D(Collision2D collision)
-    {
-        
+    {  
         isGround = true;
-        Debug.Log(isGround);
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        
         isGround = false;
-        Debug.Log(isGround);
     }
 
     #region Ex)StateMachine
@@ -249,11 +238,7 @@ public class PlayerController : MonoBehaviour
     {
         public override void Update()
         {
-            if (input.actions["Jump"].IsPressed()
-                && input.actions["Jump"].triggered)
-            {
-
-            }
+           
         }
     }
     #endregion
