@@ -10,6 +10,8 @@ public class PlayerEffectController : MonoBehaviour
 
 
 
+
+
     //상태패턴을 먼저 구현?
 
     //오브젝트 풀링으로 해야하나?
