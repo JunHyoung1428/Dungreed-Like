@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float dashTime;
     [SerializeField] bool isDash;
     [SerializeField] bool dashMode;
-    [SerializeField] TrailRenderer trailRenderer;
+    [SerializeField] PlayerAfterImage playerAfterImage;
 
 
 
@@ -86,6 +86,7 @@ public class PlayerController : MonoBehaviour
      *          Input System Actions
      ********************************************************/
 
+
     void OnMove(InputValue value)
     {
         moveDir = value.Get<Vector2>();
@@ -119,6 +120,7 @@ public class PlayerController : MonoBehaviour
             isDown = false;
         }
     }
+
     void Move()
     {
   
@@ -181,11 +183,11 @@ public class PlayerController : MonoBehaviour
         dashCount--;
         float orginGravityScale = rb.gravityScale;
         // rb.gravityScale = 0f;
-        trailRenderer.emitting = true;
+        playerAfterImage.makeGhost = true;
         rb.velocity = dashDir.normalized * dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = orginGravityScale;
-        trailRenderer.emitting = false;
+        playerAfterImage.makeGhost = false;
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
@@ -197,11 +199,11 @@ public class PlayerController : MonoBehaviour
         dashCount--;
         float orginGravityScale = rb.gravityScale;
         //rb.gravityScale = 0f;
-        trailRenderer.emitting = true;
+        playerAfterImage.makeGhost = true;
         rb.velocity = moveDir * dashSpeed;
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = orginGravityScale;
-        trailRenderer.emitting = false;
+        playerAfterImage.makeGhost = false;
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
@@ -221,6 +223,7 @@ public class PlayerController : MonoBehaviour
         float step = (dashSpeed / dis) * Time.deltaTime;
         float time = 0f;
 
+        playerAfterImage.makeGhost = true;
 
         while (time <= dashTime)
         {
@@ -228,6 +231,8 @@ public class PlayerController : MonoBehaviour
             rb.MovePosition(Vector3.Lerp(startingPos, moveTarget, time));
             yield return new WaitForFixedUpdate();
         }
+        playerAfterImage.makeGhost = false;
+
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
