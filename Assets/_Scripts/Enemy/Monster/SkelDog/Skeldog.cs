@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 
 public class Skeldog : Monster
@@ -18,7 +19,8 @@ public class Skeldog : Monster
     [SerializeField] float attackRange;
     [SerializeField] float moveSpeed;
     [SerializeField] float jumpPower;
-    
+    [SerializeField] float attackCoolTime;
+    bool isAttack;
    
     private StateMachine<State> stateMachine = new StateMachine<State>();
 
@@ -108,7 +110,7 @@ public class Skeldog : Monster
             if (Vector2.Distance(owner.target.position, owner.transform.position) > owner.chaseRange) //거리가 멀어지면
             {
                 ChangeState(State.Idle);
-            }else if(Vector2.Distance(owner.target.position, owner.transform.position) > owner.chaseRange)
+            } else if (Vector2.Distance(owner.target.position, owner.transform.position) < owner.attackRange && !owner.isAttack) //bool로 체크하니깐 쿨 적용됨
             {
                 ChangeState(State.Attack);
             } 
@@ -125,10 +127,19 @@ public class Skeldog : Monster
         public AttackState(Skeldog owner) : base(owner) { }
         public override void Enter()
         {
-            Debug.Log("Attack");
-            owner.rb.AddForce(Vector2.up * owner.jumpPower, ForceMode2D.Impulse);
+            owner.isAttack = true;
+            owner.StartCoroutine(Attackroutine());
             // 진입시 플레이어를 향해 점프 한번 하고 다시 쫓아 다님
             ChangeState(State.Chase);
+        }
+
+        IEnumerator Attackroutine()
+        {
+            //Debug.Log("Attack");
+            owner.rb.AddForce(Vector2.up * owner.jumpPower, ForceMode2D.Impulse); //쥐똥만큼 뜀
+            //owner.transform.Translate(Vector3.up * owner.jumpPower * Time.deltaTime);
+            yield return new WaitForSeconds(owner.attackCoolTime);
+            owner.isAttack = false;
         }
     }
 
