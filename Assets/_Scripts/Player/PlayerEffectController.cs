@@ -13,19 +13,18 @@ public class PlayerEffectController : MonoBehaviour
 
     [Header("Dust Effect")]
     [SerializeField] PooledObject effectWalk;
+    private float walkDelay;
     [SerializeField] PooledObject effectJump;
     [SerializeField] PooledObject effectDoubleJump;
 
     public bool isFlip;
-
-    public Vector3 JumpEffectPos = new Vector3(0, -0.85f, 0);
-    public Vector3 WalkEffectPos = new Vector3 (-0.75f, -0.25f, 0);
 
     public enum State {Idle, Walk, Jump, DoubleJump};
     public State state;
     void Start()
     {
         this.delayTime = delay;
+        walkDelay = delay * 2;
         Manager.Pool.CreatePool(effectGhostTrail, 10, 10);
         Manager.Pool.CreatePool(effectWalk, 5, 10);
         Manager.Pool.CreatePool(effectJump, 2, 2);
@@ -36,18 +35,7 @@ public class PlayerEffectController : MonoBehaviour
     {
         if (makeGhost)
         {
-            if (delayTime > 0)
-            {
-                delayTime -= Time.deltaTime;
-            }
-            else
-            {
-                PooledObject currentGhost = Manager.Pool.GetPool(effectGhostTrail, transform.position, transform.rotation);
-                Sprite currentSprite = this.GetComponent<SpriteRenderer>().sprite; // update에서 GetComponet 안쓰게 수정해야함
-                currentGhost.transform.localScale = this.transform.localScale;
-                currentGhost.GetComponent<SpriteRenderer>().sprite = currentSprite;
-                this.delayTime = this.delay;
-            }
+            StartCoroutine(makeGhostRoutine());
         }
 
         switch (state)
@@ -55,7 +43,7 @@ public class PlayerEffectController : MonoBehaviour
             case State.Idle:
                 break;
             case State.Walk:
-                StartCoroutine(WalkEffect());
+                StartCoroutine(WalkEffectRoutine());
                 break;
             case State.Jump:
                 PooledObject jumpEffect = Manager.Pool.GetPool(effectJump, transform.position, transform.rotation);
@@ -68,9 +56,22 @@ public class PlayerEffectController : MonoBehaviour
         }
     }
 
- 
+    IEnumerator makeGhostRoutine()
+    {
+        if (delayTime > 0)
+        {
+            delayTime -= Time.deltaTime;
+        }
+        else
+        {
+            PooledObject currentGhost = Manager.Pool.GetPool(effectGhostTrail, transform.position, transform.rotation);
+            currentGhost.GetComponent<SpriteRenderer>().sprite = this.GetComponent<SpriteRenderer>().sprite;
+            this.delayTime = this.delay;
+        }
+        yield return new WaitForSeconds(delay);
+    }
 
-    IEnumerator WalkEffect()
+    IEnumerator WalkEffectRoutine()
     {
         if (delayTime > 0)
         {
@@ -80,8 +81,8 @@ public class PlayerEffectController : MonoBehaviour
         {
             PooledObject dustEffect = Manager.Pool.GetPool(effectWalk, transform.position + new Vector3(0, -0.25f, -1f), transform.rotation);
             dustEffect.GetComponent<SpriteRenderer>().flipX = isFlip;
-            this.delayTime = this.delay;
+            this.delayTime = this.walkDelay;
         }
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.1f);
     }
 }
