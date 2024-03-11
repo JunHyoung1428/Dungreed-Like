@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Rigidbody2D rb;
     [SerializeField] SpriteRenderer spriteRenderer;
     [SerializeField] Animator animator;
+    [SerializeField] PlayerEffectController effect;
 
     [Header("Property")]
     [SerializeField] public float moveSpeed;
@@ -27,8 +28,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float dashTime;
     [SerializeField] bool isDash;
     [SerializeField] bool dashMode;
-    [SerializeField] PlayerEffectController effect;
-    [SerializeField] Transform effectPos;
 
 
 
@@ -298,6 +297,10 @@ public class PlayerController : MonoBehaviour
             if (!owner.isGround)
             {
                 ChangeState(State.Jump);
+            }
+            if(owner.moveDir.x == 0)
+            {
+                ChangeState(State.Idle);
             }
         }
 
