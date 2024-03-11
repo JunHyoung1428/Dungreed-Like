@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -35,14 +36,13 @@ public class PlayerController : MonoBehaviour
     private bool isDown;
     private Vector2 moveDir;
     private Vector3 mouseDir;
-    private Vector3 flipVec = new Vector3(-1, 1, 1);
 
     [SerializeField] public LayerMask groundCheckLayer;
 
-   // public enum State { Idle, Jump, Walk, Die }
+    public enum State { Idle, Run, Jump,DoubleJump ,Dash, Die }
 
-    // public PlayerInput playerInput;
-   // private StateMachine<State> stateMachine = new StateMachine<State>();
+    public PlayerInput playerInput;
+    private StateMachine<State> stateMachine = new StateMachine<State>();
 
     /******************************************************
      *                      Unity Events
@@ -50,15 +50,21 @@ public class PlayerController : MonoBehaviour
     #region Unity Events
     private void Start()
     {
-     
+        stateMachine.AddState(State.Idle, new IdleState(this));
+        stateMachine.AddState(State.Jump, new JumpState(this));
+        stateMachine.AddState(State.DoubleJump, new DoubleJumpState(this));
+        stateMachine.AddState(State.Dash, new DashState(this));
+        stateMachine.AddState(State.Run, new RunState(this));
+        stateMachine.AddState(State.Die, new DieState(this));
+        stateMachine.Start(State.Idle);
     }
 
-   /*
+
     private void Update()
     {
         stateMachine.Update();
     }
-    */
+    
     private void FixedUpdate()
     {
         mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -72,7 +78,7 @@ public class PlayerController : MonoBehaviour
     {
         if (rb.transform.position.x > mouseDir.x)
         {
-            transform.localScale = flipVec;
+            transform.localScale = new Vector3(-1, 1, 1); //캐싱해놓고 써야하나 했는데 C#에선 구조체형식이라 힙 할당 안한다고함 얼탱X
         }
         else
         {
@@ -95,14 +101,13 @@ public class PlayerController : MonoBehaviour
         if (value.isPressed && isGround)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
-            effectPos.transform.localPosition =  playerEffectController.JumpEffectPos;
-            playerEffectController.Animator.SetTrigger("Jump");
-        }else if(value.isPressed && !isGround)
+            stateMachine.ChangeState(State.Jump);
+        }/*
+        else if(value.isPressed && !isGround)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed*0.75f);
-            effectPos.transform.localPosition = playerEffectController.JumpEffectPos;
-            playerEffectController.Animator.SetTrigger("DoubleJump");
-        }
+            playerEffectController.state = PlayerEffectController.State.DoubleJump;
+        }*/
     }
 
     void OnDownJump(InputValue value)
@@ -119,40 +124,38 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
-
         if (moveDir.x < 0 && rb.velocity.x > -maxSpeed)
         {
             rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
-        }
+            playerEffectController.isFlip = true;
+        } //최대 속도 제어
         else if (moveDir.x > 0 && rb.velocity.x < maxSpeed)
         {
-
             rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
+            playerEffectController.isFlip = false;
         }
         else if (moveDir.x == 0 && rb.velocity.x > 0)
         {
             rb.AddForce(Vector2.left * breakSpeed);
-        }
+        }//방향 전환시 역방향으로 가속
         else if (moveDir.x == 0 && rb.velocity.x < 0)
         {
             rb.AddForce(Vector2.right * breakSpeed);
         }
 
         
-        if (isGround && moveDir.x != 0)
+        if (isGround && moveDir.x != 0) //애니메이션 & 이펙트 제어
         {
             animator.SetBool("Run", isGround);
-            effectPos.transform.localPosition = playerEffectController.WalkEffectPos;
-            playerEffectController.Animator.SetBool("Run", isGround);
+            playerEffectController.state = PlayerEffectController.State.Walk;
         }
         else
         {
             animator.SetBool("Run", false);
-            playerEffectController.Animator.SetBool("Run", false);
-            effectPos.transform.localPosition = playerEffectController.JumpEffectPos;
+            playerEffectController.state = PlayerEffectController.State.Idle;
         }
 
-        if (rb.velocity.y < -maxSpeed * 2)
+        if (rb.velocity.y < -maxSpeed * 2)//낙하 속도 제어
         {
             Vector2 vel = rb.velocity;
             vel.y = -maxSpeed * 2;
@@ -185,7 +188,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    IEnumerator DashWithMousePos(Vector3 dashDir)
+     IEnumerator DashWithMousePos(Vector3 dashDir)
     {
         isDash = true;
         dashCount--;
@@ -201,7 +204,7 @@ public class PlayerController : MonoBehaviour
         dashCount++;
     }
 
-    IEnumerator DashWithMoveDir()
+     IEnumerator DashWithMoveDir()
     {
         isDash = true;
         dashCount--;
@@ -219,7 +222,7 @@ public class PlayerController : MonoBehaviour
 
     // lerp하게 고정 좌표로 position 변경
     // 폐기하거나 조작감 개선 필요
-    IEnumerator NewDashRoutine(Vector3 dashDir)
+     IEnumerator NewDashRoutine(Vector3 dashDir)
     {
         isDash = true;
         dashCount--;
@@ -281,4 +284,123 @@ public class PlayerController : MonoBehaviour
         }
     }
     #endregion
+
+
+    public class PlayerState : BaseState<State>
+    {
+        public PlayerController owner;
+        public PlayerEffectController effect;
+        public PlayerInput input;
+
+        public PlayerState(PlayerController owner)
+        {
+            this.owner = owner;
+            effect = owner.playerEffectController;
+            input = owner.playerInput;
+        }
+    }
+    public class IdleState : PlayerState
+    {
+        public IdleState(PlayerController owner) : base(owner) { }
+
+        public override void Enter()
+        {
+            effect.state=PlayerEffectController.State.Idle;
+        }
+
+        public override void Transition()
+        {
+            if(owner.isGround && owner.moveDir.x != 0)
+            {
+                ChangeState(State.Run);
+            }
+        }
+    }
+
+    public class RunState : PlayerState
+    {
+        public RunState(PlayerController owner) : base(owner) { }
+
+        public override void Enter()
+        {
+            owner.animator.SetBool("Run", true);
+            effect.state = PlayerEffectController.State.Walk;
+        }
+
+        public override void Transition()
+        {
+            if (!owner.isGround)
+            {
+                ChangeState(State.Jump);
+            }
+        }
+
+        public override void Exit()
+        {
+            owner.animator.SetBool("Run", false);
+            effect.state = PlayerEffectController.State.Idle;
+        }
+    }
+
+    public class DashState : PlayerState
+    {
+        public DashState(PlayerController owner) : base(owner) { }
+        public override void Enter()
+        {
+            // owner.StartCoroutine();
+            ChangeState(State.Idle);
+        }
+
+        public override void Exit()
+        {
+
+        }
+    }
+
+    public class JumpState : PlayerState
+    {
+        public JumpState(PlayerController owner) : base(owner) {}
+
+        public override void Enter()
+        {
+            effect.state = PlayerEffectController.State.Jump;
+        }
+
+        public override void Transition()
+        {
+            if (owner.isGround)
+            {
+                ChangeState(State.Idle);
+            }
+            if (input.actions["Jump"].IsPressed()&& input.actions["Jump"].triggered)
+            {
+                ChangeState(State.DoubleJump);
+            }
+        }
+    }
+
+    public class DoubleJumpState : PlayerState
+    {
+        public DoubleJumpState(PlayerController owner) : base(owner) { }
+
+        public override void Enter()
+        {
+            owner.rb.velocity = new Vector2(owner.rb.velocity.x, owner.jumpSpeed * 0.75f);
+            effect.state = PlayerEffectController.State.DoubleJump;
+        }
+
+        public override void Transition()
+        {
+            if(owner.isGround)
+            {
+                ChangeState(State.Idle);
+            }
+        }
+    }
+
+    public class DieState : PlayerState
+    {
+        public DieState(PlayerController owner) : base(owner) { }
+
+    }
 }
