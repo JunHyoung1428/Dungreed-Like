@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float dashTime;
     [SerializeField] bool isDash;
     [SerializeField] bool dashMode;
-    [SerializeField] PlayerEffectController playerEffectController;
+    [SerializeField] PlayerEffectController effect;
     [SerializeField] Transform effectPos;
 
 
@@ -70,7 +70,6 @@ public class PlayerController : MonoBehaviour
         mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Move();
         Flip();
-        animator.SetBool("Jump", !isGround);
     }
     #endregion
 
@@ -101,13 +100,7 @@ public class PlayerController : MonoBehaviour
         if (value.isPressed && isGround)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
-            stateMachine.ChangeState(State.Jump);
-        }/*
-        else if(value.isPressed && !isGround)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed*0.75f);
-            playerEffectController.state = PlayerEffectController.State.DoubleJump;
-        }*/
+        }
     }
 
     void OnDownJump(InputValue value)
@@ -127,12 +120,12 @@ public class PlayerController : MonoBehaviour
         if (moveDir.x < 0 && rb.velocity.x > -maxSpeed)
         {
             rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
-            playerEffectController.isFlip = true;
+            effect.isFlip = true;
         } //최대 속도 제어
         else if (moveDir.x > 0 && rb.velocity.x < maxSpeed)
         {
             rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
-            playerEffectController.isFlip = false;
+            effect.isFlip = false;
         }
         else if (moveDir.x == 0 && rb.velocity.x > 0)
         {
@@ -141,18 +134,6 @@ public class PlayerController : MonoBehaviour
         else if (moveDir.x == 0 && rb.velocity.x < 0)
         {
             rb.AddForce(Vector2.right * breakSpeed);
-        }
-
-        
-        if (isGround && moveDir.x != 0) //애니메이션 & 이펙트 제어
-        {
-            animator.SetBool("Run", isGround);
-            playerEffectController.state = PlayerEffectController.State.Walk;
-        }
-        else
-        {
-            animator.SetBool("Run", false);
-            playerEffectController.state = PlayerEffectController.State.Idle;
         }
 
         if (rb.velocity.y < -maxSpeed * 2)//낙하 속도 제어
@@ -168,38 +149,19 @@ public class PlayerController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            if (dashCount > 0)
-            {
-                Vector3 dashDir = mouseDir;
-                dashDir.z = 0;
-                dashDir = dashDir - transform.position;
-                if (dashMode)
-                {
-
-                    StartCoroutine(DashWithMousePos(dashDir));
-
-                }
-                else
-                {
-                    StartCoroutine(NewDashRoutine(dashDir));
-                    //StartCoroutine(DashWithMoveDir());
-                }
-            }
+             stateMachine.ChangeState(State.Dash);
         }
     }
 
      IEnumerator DashWithMousePos(Vector3 dashDir)
     {
         isDash = true;
+        effect.makeGhost = isDash;
         dashCount--;
-        float orginGravityScale = rb.gravityScale;
-        //rb.gravityScale = 0f;
-        playerEffectController.makeGhost = true;
         rb.velocity = dashDir.normalized * dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
         yield return new WaitForSeconds(dashTime);
-        rb.gravityScale = orginGravityScale;
-        playerEffectController.makeGhost = false;
         isDash = false;
+        effect.makeGhost = isDash;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
     }
@@ -207,15 +169,12 @@ public class PlayerController : MonoBehaviour
      IEnumerator DashWithMoveDir()
     {
         isDash = true;
+        effect.makeGhost = isDash;
         dashCount--;
-        float orginGravityScale = rb.gravityScale;
-        //rb.gravityScale = 0f;
-        playerEffectController.makeGhost = true;
         rb.velocity = moveDir * dashSpeed;
         yield return new WaitForSeconds(dashTime);
-        rb.gravityScale = orginGravityScale;
-        playerEffectController.makeGhost = false;
         isDash = false;
+        effect.makeGhost = isDash;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
     }
@@ -234,7 +193,7 @@ public class PlayerController : MonoBehaviour
         float step = (dashSpeed / dis) * Time.deltaTime;
         float time = 0f;
 
-        playerEffectController.makeGhost = true;
+        effect.makeGhost = true;
 
         while (time <= dashTime)
         {
@@ -242,7 +201,7 @@ public class PlayerController : MonoBehaviour
             rb.MovePosition(Vector3.Lerp(startingPos, moveTarget, time));
             yield return new WaitForFixedUpdate();
         }
-        playerEffectController.makeGhost = false;
+        effect.makeGhost = false;
 
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
@@ -286,6 +245,10 @@ public class PlayerController : MonoBehaviour
     #endregion
 
 
+    /********************************************************
+    *             Player State Machine
+    ********************************************************/
+    #region PlayerState
     public class PlayerState : BaseState<State>
     {
         public PlayerController owner;
@@ -295,7 +258,7 @@ public class PlayerController : MonoBehaviour
         public PlayerState(PlayerController owner)
         {
             this.owner = owner;
-            effect = owner.playerEffectController;
+            effect = owner.effect;
             input = owner.playerInput;
         }
     }
@@ -313,6 +276,9 @@ public class PlayerController : MonoBehaviour
             if(owner.isGround && owner.moveDir.x != 0)
             {
                 ChangeState(State.Run);
+            }else if(input.actions["Jump"].IsPressed() && input.actions["Jump"].triggered)
+            {
+                ChangeState(State.Jump);
             }
         }
     }
@@ -347,13 +313,26 @@ public class PlayerController : MonoBehaviour
         public DashState(PlayerController owner) : base(owner) { }
         public override void Enter()
         {
-            // owner.StartCoroutine();
+            if (owner.dashCount > 0)
+            {
+                Vector3 dashDir = owner.mouseDir;
+                dashDir.z = 0;
+                dashDir = dashDir - owner.transform.position;
+                if (owner.dashMode)
+                {
+                    owner.StartCoroutine(owner.DashWithMousePos(dashDir));
+                }
+                else
+                {
+                    owner.StartCoroutine(owner.DashWithMoveDir());
+                    //StartCoroutine(DashWithMoveDir());
+                }
+            }
             ChangeState(State.Idle);
         }
-
         public override void Exit()
         {
-
+            //충돌 무시 판정 Off
         }
     }
 
@@ -363,6 +342,7 @@ public class PlayerController : MonoBehaviour
 
         public override void Enter()
         {
+            owner.animator.SetBool("Jump", true);
             effect.state = PlayerEffectController.State.Jump;
         }
 
@@ -377,6 +357,11 @@ public class PlayerController : MonoBehaviour
                 ChangeState(State.DoubleJump);
             }
         }
+
+        public override void Exit()
+        {
+            owner.animator.SetBool("Jump", false);
+        }
     }
 
     public class DoubleJumpState : PlayerState
@@ -386,6 +371,7 @@ public class PlayerController : MonoBehaviour
         public override void Enter()
         {
             owner.rb.velocity = new Vector2(owner.rb.velocity.x, owner.jumpSpeed * 0.75f);
+            owner.animator.SetBool("Jump", true);
             effect.state = PlayerEffectController.State.DoubleJump;
         }
 
@@ -395,6 +381,14 @@ public class PlayerController : MonoBehaviour
             {
                 ChangeState(State.Idle);
             }
+            if (input.actions["Jump"].IsPressed() && input.actions["Jump"].triggered)
+            {
+                ChangeState(State.DoubleJump);
+            }
+        }
+        public override void Exit()
+        {
+            owner.animator.SetBool("Jump", false);
         }
     }
 
@@ -403,4 +397,5 @@ public class PlayerController : MonoBehaviour
         public DieState(PlayerController owner) : base(owner) { }
 
     }
+    #endregion
 }
