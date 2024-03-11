@@ -1,36 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerEffectController : MonoBehaviour
 {
     [Header("Ghost Trail")]
     [SerializeField] PooledObject effectGhostTrail;
-    [SerializeField] float ghostDelay;
-    private float ghostDelayTime;
+    [SerializeField] float delay;
+    private float delayTime;
     [SerializeField] public bool makeGhost;
 
     [Header("Dust Effect")]
-    [SerializeField] Animator animator;
-    public Animator Animator { get { return animator; } set { animator = value; } }
+    [SerializeField] PooledObject effectWalk;
+    [SerializeField] PooledObject effectJump;
+    [SerializeField] PooledObject effectDoubleJump;
+
+    public bool isFlip;
 
     public Vector3 JumpEffectPos = new Vector3(0, -0.85f, 0);
     public Vector3 WalkEffectPos = new Vector3 (-0.75f, -0.25f, 0);
 
-
+    public enum State {Idle, Walk, Jump, DoubleJump};
+    public State state;
     void Start()
     {
-        this.ghostDelayTime = ghostDelay;
+        this.delayTime = delay;
         Manager.Pool.CreatePool(effectGhostTrail, 10, 10);
+        Manager.Pool.CreatePool(effectWalk, 5, 10);
+        Manager.Pool.CreatePool(effectJump, 2, 2);
+        Manager.Pool.CreatePool(effectDoubleJump, 2, 2);
     }
 
     void FixedUpdate()
     {
         if (makeGhost)
         {
-            if (ghostDelayTime > 0)
+            if (delayTime > 0)
             {
-                ghostDelayTime -= Time.deltaTime;
+                delayTime -= Time.deltaTime;
             }
             else
             {
@@ -38,11 +46,42 @@ public class PlayerEffectController : MonoBehaviour
                 Sprite currentSprite = this.GetComponent<SpriteRenderer>().sprite; // update에서 GetComponet 안쓰게 수정해야함
                 currentGhost.transform.localScale = this.transform.localScale;
                 currentGhost.GetComponent<SpriteRenderer>().sprite = currentSprite;
-                this.ghostDelayTime = this.ghostDelay;
+                this.delayTime = this.delay;
             }
+        }
+
+        switch (state)
+        {
+            case State.Idle:
+                break;
+            case State.Walk:
+                StartCoroutine(WalkEffect());
+                break;
+            case State.Jump:
+                PooledObject jumpEffect = Manager.Pool.GetPool(effectJump, transform.position, transform.rotation);
+                state = State.Idle;
+                break;
+            case State.DoubleJump:
+                PooledObject doubleJumpEffect = Manager.Pool.GetPool(effectDoubleJump, transform.position, transform.rotation);
+                state = State.Idle;
+                break;
         }
     }
 
+ 
 
-
+    IEnumerator WalkEffect()
+    {
+        if (delayTime > 0)
+        {
+            delayTime -= Time.deltaTime;
+        }
+        else
+        {
+            PooledObject dustEffect = Manager.Pool.GetPool(effectWalk, transform.position + new Vector3(0, -0.25f, -1f), transform.rotation);
+            dustEffect.GetComponent<SpriteRenderer>().flipX = isFlip;
+            this.delayTime = this.delay;
+        }
+        yield return new WaitForSeconds(0.3f);
+    }
 }
