@@ -1,15 +1,11 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Xml.Serialization;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 
 public class PlayerController : MonoBehaviour
 {
-    
+
     [Header("Component")]
     [SerializeField] Rigidbody2D rb;
     [SerializeField] SpriteRenderer spriteRenderer;
@@ -21,6 +17,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float breakSpeed;
     [SerializeField] public float jumpSpeed;
     [SerializeField] int hp;
+     public int HP { get { return hp; } set { hp = value; } }
 
     [Header("DashStatus")]
     [SerializeField] int dashCount;
@@ -29,11 +26,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float dashTime;
     [SerializeField] bool isDash;
     [SerializeField] bool dashMode;
-    [SerializeField] PlayerAfterImage playerAfterImage;
+    [SerializeField] PlayerEffectController playerEffectController;
+    [SerializeField] Transform effectPos;
 
 
 
-    private bool isGround;
+    [SerializeField] private bool isGround;
     private bool isDown;
     private Vector2 moveDir;
     private Vector3 mouseDir;
@@ -41,27 +39,26 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] public LayerMask groundCheckLayer;
 
-    public enum State { Idle, Jump, Walk, Die}
-    
-    public int HP {  get { return hp; } set { hp = value; } }
+   // public enum State { Idle, Jump, Walk, Die }
 
-    public PlayerInput playerInput;
-    private StateMachine<State> stateMachine = new StateMachine<State>();
+    // public PlayerInput playerInput;
+   // private StateMachine<State> stateMachine = new StateMachine<State>();
 
     /******************************************************
      *                      Unity Events
      ******************************************************/
+    #region Unity Events
     private void Start()
     {
-        stateMachine.AddState(State.Idle, new IdleState());
-        stateMachine.AddState(State.Jump, new JumpState());
-        stateMachine.Start(State.Idle);
+     
     }
 
+   /*
     private void Update()
     {
-        //stateMachine.Update();
+        stateMachine.Update();
     }
+    */
     private void FixedUpdate()
     {
         mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -69,10 +66,11 @@ public class PlayerController : MonoBehaviour
         Flip();
         animator.SetBool("Jump", !isGround);
     }
+    #endregion
 
     void Flip()
     {
-        if(rb.transform.position.x > mouseDir.x)
+        if (rb.transform.position.x > mouseDir.x)
         {
             transform.localScale = flipVec;
         }
@@ -85,20 +83,11 @@ public class PlayerController : MonoBehaviour
     /********************************************************
      *          Input System Actions
      ********************************************************/
-
+    #region Input System Actions
 
     void OnMove(InputValue value)
     {
         moveDir = value.Get<Vector2>();
-
-        if (moveDir.x != 0 && isGround)
-        {
-            animator.SetBool("Run", true);
-        }
-        else
-        {
-            animator.SetBool("Run", false);
-        }
     }
 
     void OnJump(InputValue value)
@@ -106,6 +95,13 @@ public class PlayerController : MonoBehaviour
         if (value.isPressed && isGround)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
+            effectPos.transform.localPosition =  playerEffectController.JumpEffectPos;
+            playerEffectController.Animator.SetTrigger("Jump");
+        }else if(value.isPressed && !isGround)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed*0.75f);
+            effectPos.transform.localPosition = playerEffectController.JumpEffectPos;
+            playerEffectController.Animator.SetTrigger("DoubleJump");
         }
     }
 
@@ -123,8 +119,8 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
-  
-        if (moveDir.x < 0 && rb.velocity.x > -maxSpeed) 
+
+        if (moveDir.x < 0 && rb.velocity.x > -maxSpeed)
         {
             rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
         }
@@ -133,7 +129,7 @@ public class PlayerController : MonoBehaviour
 
             rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
         }
-        else if (moveDir.x == 0 && rb.velocity.x > 0) 
+        else if (moveDir.x == 0 && rb.velocity.x > 0)
         {
             rb.AddForce(Vector2.left * breakSpeed);
         }
@@ -142,7 +138,21 @@ public class PlayerController : MonoBehaviour
             rb.AddForce(Vector2.right * breakSpeed);
         }
 
-        if (rb.velocity.y < -maxSpeed * 2) 
+        
+        if (isGround && moveDir.x != 0)
+        {
+            animator.SetBool("Run", isGround);
+            effectPos.transform.localPosition = playerEffectController.WalkEffectPos;
+            playerEffectController.Animator.SetBool("Run", isGround);
+        }
+        else
+        {
+            animator.SetBool("Run", false);
+            playerEffectController.Animator.SetBool("Run", false);
+            effectPos.transform.localPosition = playerEffectController.JumpEffectPos;
+        }
+
+        if (rb.velocity.y < -maxSpeed * 2)
         {
             Vector2 vel = rb.velocity;
             vel.y = -maxSpeed * 2;
@@ -155,39 +165,37 @@ public class PlayerController : MonoBehaviour
     {
         if (value.isPressed)
         {
-            if(dashCount > 0)
-            {  
+            if (dashCount > 0)
+            {
                 Vector3 dashDir = mouseDir;
-                    dashDir.z = 0;
-                    dashDir = dashDir - transform.position;
+                dashDir.z = 0;
+                dashDir = dashDir - transform.position;
                 if (dashMode)
                 {
-                  
+
                     StartCoroutine(DashWithMousePos(dashDir));
-                    
+
                 }
                 else
                 {
                     StartCoroutine(NewDashRoutine(dashDir));
                     //StartCoroutine(DashWithMoveDir());
                 }
-                //rigidbody.AddForce(dashDir.normalized*dashPower, ForceMode2D.Impulse);
             }
         }
     }
 
-    
     IEnumerator DashWithMousePos(Vector3 dashDir)
     {
         isDash = true;
         dashCount--;
         float orginGravityScale = rb.gravityScale;
-        // rb.gravityScale = 0f;
-        playerAfterImage.makeGhost = true;
+        //rb.gravityScale = 0f;
+        playerEffectController.makeGhost = true;
         rb.velocity = dashDir.normalized * dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = orginGravityScale;
-        playerAfterImage.makeGhost = false;
+        playerEffectController.makeGhost = false;
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
@@ -199,31 +207,31 @@ public class PlayerController : MonoBehaviour
         dashCount--;
         float orginGravityScale = rb.gravityScale;
         //rb.gravityScale = 0f;
-        playerAfterImage.makeGhost = true;
+        playerEffectController.makeGhost = true;
         rb.velocity = moveDir * dashSpeed;
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = orginGravityScale;
-        playerAfterImage.makeGhost = false;
+        playerEffectController.makeGhost = false;
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
     }
 
-    //조작감 개선을 위해 다른 방식 테스트
     // lerp하게 고정 좌표로 position 변경
+    // 폐기하거나 조작감 개선 필요
     IEnumerator NewDashRoutine(Vector3 dashDir)
     {
         isDash = true;
         dashCount--;
 
-        float dashDis = 4.0f; 
+        float dashDis = 4.0f;
         Vector3 startingPos = transform.position;
         Vector3 moveTarget = startingPos + Vector3.ClampMagnitude(dashDir, dashDis);
         float dis = Vector3.Distance(transform.position, moveTarget);
         float step = (dashSpeed / dis) * Time.deltaTime;
         float time = 0f;
 
-        playerAfterImage.makeGhost = true;
+        playerEffectController.makeGhost = true;
 
         while (time <= dashTime)
         {
@@ -231,52 +239,46 @@ public class PlayerController : MonoBehaviour
             rb.MovePosition(Vector3.Lerp(startingPos, moveTarget, time));
             yield return new WaitForFixedUpdate();
         }
-        playerAfterImage.makeGhost = false;
+        playerEffectController.makeGhost = false;
 
         isDash = false;
         yield return new WaitForSeconds(dashCoolTime);
         dashCount++;
     }
 
-
-    /********************************************************
-     *              OnCollider Event
-     ********************************************************/
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {  
-        isGround = true;
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        isGround = false;
-    }
-
-    #region Ex)StateMachine
-    private class PlayerState : BaseState<State>
-    {
-        protected PlayerController controller;
-        protected PlayerInput input;
-    }
-
-    private class IdleState : PlayerState
-    {
-        public override void Enter()
-        {
-            base.Enter();
-        }
-    }
-
-    private class JumpState : PlayerState
-    {
-        public override void Update()
-        {
-           
-        }
-    }
     #endregion
 
 
-  
+    /********************************************************
+     *              OnCollider / OnTrigger Event
+     ********************************************************/
+    #region Collider/Trigger Event
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (isDown)
+        {
+            Physics2D.IgnoreCollision(collision.gameObject.GetComponent<Collider2D>(), gameObject.GetComponent<Collider2D>(), true);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (groundCheckLayer.Contain(collision.gameObject.layer))
+        {
+            isGround = true;
+        }
+        if (!isDown)
+        {
+            Physics2D.IgnoreCollision(collision.gameObject.GetComponent<Collider2D>(), gameObject.GetComponent<Collider2D>(), false);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (groundCheckLayer.Contain(collision.gameObject.layer))
+        {
+            isGround = false;
+        }
+    }
+    #endregion
 }
