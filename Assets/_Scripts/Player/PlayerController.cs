@@ -8,12 +8,12 @@ public class PlayerController : MonoBehaviour
 {
 
     [Header("Component")]
-    [SerializeField] Rigidbody2D rb;
+    [SerializeField] Rigidbody2D rigid;
     [SerializeField] SpriteRenderer spriteRenderer;
     [SerializeField] Animator animator;
     [SerializeField] PlayerEffectController effect;
 
-    [Header("Property")]
+    [Header("Base Status")]
     [SerializeField] public float moveSpeed;
     [SerializeField] public float maxSpeed;
     [SerializeField] public float breakSpeed;
@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] int hp;
      public int HP { get { return hp; } set { hp = value; } }
 
-    [Header("DashStatus")]
+    [Header("Dash Status")]
     [SerializeField] int dashCount;
     [SerializeField] float dashSpeed;
     [SerializeField] float dashCoolTime;
@@ -32,9 +32,14 @@ public class PlayerController : MonoBehaviour
 
 
     [SerializeField] private bool isGround;
+    [SerializeField] private bool isSlope;
+    private Transform frontChecker;
+    private float slopeAngle;
     private bool isDown;
     private Vector2 moveDir;
+    private Vector2 perp;
     private Vector3 mouseDir;
+
 
     [SerializeField] public LayerMask groundCheckLayer;
 
@@ -49,6 +54,7 @@ public class PlayerController : MonoBehaviour
     #region Unity Events
     private void Start()
     {
+        rigid = GetComponent<Rigidbody2D>();
         stateMachine.AddState(State.Idle, new IdleState(this));
         stateMachine.AddState(State.Jump, new JumpState(this));
         stateMachine.AddState(State.DoubleJump, new DoubleJumpState(this));
@@ -72,17 +78,107 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+
+    /******************************************************
+    *                      Move Logics
+    ******************************************************/
+    //마우스 방향에 따라 플레이어 좌우반전
     void Flip()
     {
-        if (rb.transform.position.x > mouseDir.x)
+        if (rigid.transform.position.x > mouseDir.x)
         {
-            transform.localScale = new Vector3(-1, 1, 1); //캐싱해놓고 써야하나 했는데 C#에선 구조체형식이라 힙 할당 안한다고함 얼탱X
+            transform.localScale = new Vector3(-1, 1, 1);
+            //캐싱해놓고 써야하나 했는데 C#에선 구조체형식이라 힙에 할당 안일어난다함 다행
+            
         }
         else
         {
             transform.localScale = Vector3.one;
         }
     }
+
+    void Move()
+    {
+        if (isGround)
+        {
+            if (moveDir.x < 0 && rigid.velocity.x > -maxSpeed)
+            {
+                rigid.AddForce(Vector2.right * moveDir.x * moveSpeed);
+                effect.isFlip = true;
+            } //최대 속도 제어
+            else if (moveDir.x > 0 && rigid.velocity.x < maxSpeed)
+            {
+                rigid.AddForce(Vector2.right * moveDir.x * moveSpeed);
+                effect.isFlip = false;
+            }
+            else if (moveDir.x == 0 && rigid.velocity.x > 0)
+            {
+                rigid.AddForce(Vector2.left * breakSpeed);
+            }//방향 전환시 역방향으로 가속
+            else if (moveDir.x == 0 && rigid.velocity.x < 0)
+            {
+                rigid.AddForce(Vector2.right * breakSpeed);
+            }
+        }
+        else
+        {
+
+        }
+
+
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down,0.3f, groundCheckLayer);
+        RaycastHit2D frontHit = Physics2D.Raycast(transform.position, transform.right, 0.1f, groundCheckLayer);
+
+        if (hit || frontHit)
+        {
+            if(frontHit)
+            {
+                SlopeCheck(frontHit);
+            }
+            else if(hit)
+            {
+                SlopeCheck(hit);
+            }
+        }
+
+        Debug.DrawLine(hit.point, hit.point + perp, Color.red);
+        Debug.DrawLine(hit.point, hit.point + hit.normal, Color.blue);
+
+
+        if (isSlope)
+        {
+            Debug.Log("isSlope");
+        }
+
+
+        if (rigid.velocity.y < -maxSpeed * 2)//낙하 속도 제어
+        {
+            Vector2 vel = rigid.velocity;
+            vel.y = -maxSpeed * 2;
+            rigid.velocity = vel;
+        }
+    }
+
+
+    //경사면 확인
+    private void SlopeCheck(RaycastHit2D raycastHit)
+    {
+        perp = Vector2.Perpendicular(raycastHit.normal).normalized;
+        slopeAngle = Vector2.Angle(raycastHit.normal, perp);
+
+        isSlope = (slopeAngle != 0) ? true:false;
+
+        /*
+        if(slopeAngle != 0)
+        {
+            isSlope = true;
+        }
+        else
+        {
+            isSlope=false;
+        }*/
+    }
+
 
     /********************************************************
      *          Input System Actions
@@ -98,7 +194,7 @@ public class PlayerController : MonoBehaviour
     {
         if (value.isPressed && isGround)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
+            rigid.velocity = new Vector2(rigid.velocity.x, jumpSpeed);
         }
     }
 
@@ -114,34 +210,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Move()
-    {
-        if (moveDir.x < 0 && rb.velocity.x > -maxSpeed)
-        {
-            rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
-            effect.isFlip = true;
-        } //최대 속도 제어
-        else if (moveDir.x > 0 && rb.velocity.x < maxSpeed)
-        {
-            rb.AddForce(Vector2.right * moveDir.x * moveSpeed);
-            effect.isFlip = false;
-        }
-        else if (moveDir.x == 0 && rb.velocity.x > 0)
-        {
-            rb.AddForce(Vector2.left * breakSpeed);
-        }//방향 전환시 역방향으로 가속
-        else if (moveDir.x == 0 && rb.velocity.x < 0)
-        {
-            rb.AddForce(Vector2.right * breakSpeed);
-        }
-
-        if (rb.velocity.y < -maxSpeed * 2)//낙하 속도 제어
-        {
-            Vector2 vel = rb.velocity;
-            vel.y = -maxSpeed * 2;
-            rb.velocity = vel;
-        }
-    }
 
     //Dash 마우스 에임기준 대쉬랑 moveDir 기준 Dash 두가지 옵션 있음
     void OnDash(InputValue value)
@@ -157,7 +225,7 @@ public class PlayerController : MonoBehaviour
         isDash = true;
         effect.makeGhost = isDash;
         dashCount--;
-        rb.velocity = dashDir.normalized * dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
+        rigid.velocity = dashDir.normalized * dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
         yield return new WaitForSeconds(dashTime);
         isDash = false;
         effect.makeGhost = isDash;
@@ -170,7 +238,7 @@ public class PlayerController : MonoBehaviour
         isDash = true;
         effect.makeGhost = isDash;
         dashCount--;
-        rb.velocity = moveDir * dashSpeed;
+        rigid.velocity = moveDir * dashSpeed;
         yield return new WaitForSeconds(dashTime);
         isDash = false;
         effect.makeGhost = isDash;
@@ -197,7 +265,7 @@ public class PlayerController : MonoBehaviour
         while (time <= dashTime)
         {
             time += step;
-            rb.MovePosition(Vector3.Lerp(startingPos, moveTarget, time));
+            rigid.MovePosition(Vector3.Lerp(startingPos, moveTarget, time));
             yield return new WaitForFixedUpdate();
         }
         effect.makeGhost = false;
@@ -314,11 +382,13 @@ public class PlayerController : MonoBehaviour
     public class DashState : PlayerState
     {
         public DashState(PlayerController owner) : base(owner) { }
+
+        Vector3 dashDir;
         public override void Enter()
         {
             if (owner.dashCount > 0)
             {
-                Vector3 dashDir = owner.mouseDir;
+                dashDir = owner.mouseDir;
                 dashDir.z = 0;
                 dashDir = dashDir - owner.transform.position;
                 if (owner.dashMode)
@@ -333,6 +403,14 @@ public class PlayerController : MonoBehaviour
             }
             ChangeState(State.Idle);
         }
+        /*
+        public override void Update()
+        {
+            if (owner.isDash)
+            {
+                owner.rb.velocity = dashDir.normalized * owner.dashSpeed;
+            }
+        }*/
         public override void Exit()
         {
             //충돌 무시 판정 Off
@@ -373,7 +451,7 @@ public class PlayerController : MonoBehaviour
 
         public override void Enter()
         {
-            owner.rb.velocity = new Vector2(owner.rb.velocity.x, owner.jumpSpeed * 0.75f);
+            owner.rigid.velocity = new Vector2(owner.rigid.velocity.x, owner.jumpSpeed * 0.75f);
             owner.animator.SetBool("Jump", true);
             effect.state = PlayerEffectController.State.DoubleJump;
         }
