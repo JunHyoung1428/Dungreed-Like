@@ -8,7 +8,7 @@ public class PlayerAttack : MonoBehaviour
 {
     [SerializeField] Transform body;
     [SerializeField] Transform handPos;
-    [SerializeField] GameObject weapon;
+    [SerializeField] Weapon weapon;
 
     [SerializeField] float rotationAngle;
     [SerializeField] float attackSpeed;
@@ -33,9 +33,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (dir != Vector3.zero)
         {
-            
-            dir.z = 0f;
-            //handPos.transform.LookAt2DLerp(dir); // x스케일 -1 일때 회전이 반대 방향으로 이뤄짐
+           dir.z = 0f;
            handPos.localScale = new Vector3(body.localScale.x, handPos.localScale.y, handPos.localScale.z);
            handPos.right = dir.normalized;
         }
@@ -49,27 +47,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (inputValue.isPressed && !isAttack)
         {
-            StartCoroutine(AttackRoutine());
+            weapon.Attack(dir);
         }
-    }
-
-    //TODO:공격시 이펙트 오브젝트 풀링으로 생성
-    IEnumerator AttackRoutine()
-    {
-        isAttack = true;
-        if(attackForm)
-        {
-            Debug.Log("Attack1");
-            handPos.localScale = new Vector3(handPos.localScale.x, -1, handPos.localScale.z);
-            attackForm = false;
-        }
-        else
-        {
-            Debug.Log("Attack2");
-            handPos.localScale = new Vector3(handPos.localScale.x, 1, handPos.localScale.z);
-            attackForm = true;
-        }
-        yield return new WaitForSeconds(attackDuration);
-        isAttack =false;
     }
 }
