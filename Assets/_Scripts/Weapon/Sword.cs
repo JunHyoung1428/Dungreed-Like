@@ -22,19 +22,17 @@ public class Sword : Weapon
         isAttack = true;
         if (attackForm)
         {
-            Debug.Log("Attack1");
-
             handPos.localScale = new Vector3(handPos.localScale.x, -1, handPos.localScale.z);
             attackForm = false;
         }
         else
         {
-            Debug.Log("Attack2");
             handPos.localScale = new Vector3(handPos.localScale.x, 1, handPos.localScale.z);
             attackForm = true;
         }
         PooledObject pooledObject = Manager.Pool.GetPool(effect, transform.position+dir.normalized*attackRange, transform.rotation);
+        Shake(damage);
         yield return new WaitForSeconds(attackDuration);
         isAttack = false;
     }
-}
+} 
