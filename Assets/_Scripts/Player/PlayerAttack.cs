@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Net.NetworkInformation;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -8,19 +9,27 @@ public class PlayerAttack : MonoBehaviour
 {
     [SerializeField] Transform body;
     [SerializeField] Transform handPos;
-    [SerializeField] Weapon weapon;
+    [SerializeField] GameObject[] Weapons;
+    private Weapon[] weapons;
 
-    [SerializeField] float rotationAngle;
-    [SerializeField] float attackSpeed;
     [SerializeField] float attackDuration;
-    [SerializeField] bool attackForm;
     [SerializeField] bool isAttack;
 
+    [SerializeField] bool activateWeapon=true;
 
     private Vector3 dir;
     /******************************************************
      *                      Unity Events
      ******************************************************/
+    private void Start()
+    {
+        weapons = new Weapon[Weapons.Length];
+        for (int i = 0; i < Weapons.Length; i++)
+        {
+            weapons[i] = Weapons[i].GetComponent<Weapon>(); //나중에 인벤토리에서 무기 교체시에도 새로 갱신해줘야함
+        }
+    }
+
 
     void Update()
     {
@@ -42,12 +51,38 @@ public class PlayerAttack : MonoBehaviour
      *                     Input Action Events
      ******************************************************/
 
-    //일단은 장병기 구현
+
     void OnAttack(InputValue inputValue)
     {
         if (inputValue.isPressed && !isAttack)
         {
-            weapon.Attack(dir);
+           if(activateWeapon)
+            {
+                weapons[0]!.Attack(dir);
+            }
+            else
+            {
+                weapons[1]!.Attack(dir);
+            }
+        }
+    }
+
+    void OnSwap(InputValue input)
+    {
+        if(input.isPressed)
+        {
+            if(activateWeapon)
+            {
+                activateWeapon = false;
+                Weapons[0].SetActive(false);
+                Weapons[1].SetActive(true);
+            }
+            else
+            {
+                activateWeapon = true;
+                Weapons[0].SetActive(true);
+                Weapons[1].SetActive(false);
+            }
         }
     }
 }
