@@ -35,7 +35,7 @@ public class PlayerEffectController : MonoBehaviour
     {
         if (makeGhost)
         {
-            StartCoroutine(makeGhostRoutine());
+            StartCoroutine(MakeGhostRoutine());
         }
 
         switch (state)
@@ -56,7 +56,7 @@ public class PlayerEffectController : MonoBehaviour
         }
     }
 
-    IEnumerator makeGhostRoutine()
+    IEnumerator MakeGhostRoutine()
     {
         if (delayTime > 0)
         {

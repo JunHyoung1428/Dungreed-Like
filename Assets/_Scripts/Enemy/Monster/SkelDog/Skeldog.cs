@@ -24,7 +24,8 @@ public class Skeldog : Monster
    
     private StateMachine<State> stateMachine = new StateMachine<State>();
 
-    
+ 
+
     protected override void Start()
     {
         base.Start();
