@@ -15,7 +15,7 @@ public class PlayerStatusUI : MonoBehaviour
 
     [SerializeField] Image staminaBar;
 
-    private void Awake()
+    private void OnEnable()
     {
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
         player.OnChangeHP+= UpdateHP ;
