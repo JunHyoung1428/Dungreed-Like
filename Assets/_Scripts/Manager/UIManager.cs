@@ -12,6 +12,8 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] Image popUpBlocker;
     [SerializeField] Button inGameBlocker;
 
+    [SerializeField] Image PlayerHPBar;
+
     private Stack<PopUpUI> popUpStack = new Stack<PopUpUI>();
     private float prevTimeScale;
     private InGameUI curInGameUI;

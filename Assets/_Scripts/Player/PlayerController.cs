@@ -2,10 +2,11 @@ using System.Buffers;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamagable
 {
     [SerializeField] bool DebugMode;
 
@@ -20,8 +21,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] public float maxSpeed;
     [SerializeField] public float breakSpeed;
     [SerializeField] public float jumpSpeed;
+    [SerializeField]  int maxHp;
+     public int MaxHP { get { return maxHp; } set { maxHp = value; OnChangeHP.Invoke(value,HP); } }
     [SerializeField] int hp;
-     public int HP { get { return hp; } set { hp = value; } }
+     public int HP { get { return hp; } set { if (value >= MaxHP) hp = maxHp; else hp = value; OnChangeHP.Invoke(MaxHP,value); } }
+    public event UnityAction<int, int> OnChangeHP;
 
     [Header("Dash Status")]
     [SerializeField] int dashCount;
@@ -61,6 +65,8 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         rigid = GetComponent<Rigidbody2D>();
+        HP = maxHp;
+
         stateMachine.AddState(State.Idle, new IdleState(this));
         stateMachine.AddState(State.Jump, new JumpState(this));
         stateMachine.AddState(State.DoubleJump, new DoubleJumpState(this));
@@ -299,6 +305,11 @@ public class PlayerController : MonoBehaviour
         {
             isGround = false;
         }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        HP -= damage;
     }
     #endregion
 
