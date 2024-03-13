@@ -31,7 +31,7 @@ public class PlayerEffectController : MonoBehaviour
         Manager.Pool.CreatePool(effectDoubleJump, 2, 2);
     }
 
-    void FixedUpdate()
+    void Update()
     {
         if (makeGhost)
         {
