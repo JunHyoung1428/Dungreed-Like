@@ -1,11 +1,13 @@
 using System.Buffers;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] bool DebugMode;
 
     [Header("Component")]
     [SerializeField] Rigidbody2D rigid;
@@ -33,7 +35,11 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private bool isGround;
     [SerializeField] private bool isSlope;
-    private Transform frontChecker;
+    
+    //for Debug
+    [SerializeField][Range(0f, 180f)] float maxAngle =180f;
+    [SerializeField][Range(0f, 2f)] float detectDistance;
+    [SerializeField] Transform frontChecker;
     private float slopeAngle;
     private bool isDown;
     private Vector2 moveDir;
@@ -68,13 +74,13 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         stateMachine.Update();
+        SlopeCheck();
+        Flip();
     }
     
     private void FixedUpdate()
     {
-        mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Move();
-        Flip();
     }
     #endregion
 
@@ -85,69 +91,48 @@ public class PlayerController : MonoBehaviour
     //마우스 방향에 따라 플레이어 좌우반전
     void Flip()
     {
-        if (rigid.transform.position.x > mouseDir.x)
-        {
-            transform.localScale = new Vector3(-1, 1, 1);
-            //캐싱해놓고 써야하나 했는데 C#에선 구조체형식이라 힙에 할당 안일어난다함 다행
-            
-        }
-        else
-        {
-            transform.localScale = Vector3.one;
-        }
+        mouseDir = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        transform.localScale = new Vector3((rigid.transform.position.x > mouseDir.x)? -1:1,1,1);
+        frontChecker.localScale = transform.localScale;
     }
 
     void Move()
     {
-        if (isGround)
+        //ToDo : 조건문 부분 나중에 리팩토링 할 것
+        if (isSlope && isGround && slopeAngle < maxAngle)
+        {
+            rigid.velocity = moveDir.x * perp * -1 * moveSpeed;
+        }
+
+        if (isGround && !isSlope)
         {
             if (moveDir.x < 0 && rigid.velocity.x > -maxSpeed)
             {
-                rigid.AddForce(Vector2.right * moveDir.x * moveSpeed);
+                rigid.velocity = new Vector2(-moveSpeed, rigid.velocity.y);
                 effect.isFlip = true;
             } //최대 속도 제어
             else if (moveDir.x > 0 && rigid.velocity.x < maxSpeed)
             {
-                rigid.AddForce(Vector2.right * moveDir.x * moveSpeed);
+                rigid.velocity = new Vector2(moveSpeed, rigid.velocity.y);
                 effect.isFlip = false;
             }
-            else if (moveDir.x == 0 && rigid.velocity.x > 0)
-            {
-                rigid.AddForce(Vector2.left * breakSpeed);
-            }//방향 전환시 역방향으로 가속
-            else if (moveDir.x == 0 && rigid.velocity.x < 0)
-            {
-                rigid.AddForce(Vector2.right * breakSpeed);
-            }
+            
         }
-        else
+        else if(!isGround) //공중에 있을 때
         {
-
-        }
-
-
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down,0.3f, groundCheckLayer);
-        RaycastHit2D frontHit = Physics2D.Raycast(transform.position, transform.right, 0.1f, groundCheckLayer);
-
-        if (hit || frontHit)
-        {
-            if(frontHit)
+            if (moveDir.x > 0 && rigid.velocity.x < maxSpeed)
             {
-                SlopeCheck(frontHit);
+                rigid.AddForce(Vector2.right * moveSpeed * 2, ForceMode2D.Force);
             }
-            else if(hit)
+            else if (moveDir.x < 0 && rigid.velocity.x > -maxSpeed)
             {
-                SlopeCheck(hit);
+                rigid.AddForce(Vector2.left * moveSpeed * 2, ForceMode2D.Force);
             }
         }
 
-        Debug.DrawLine(hit.point, hit.point + perp, Color.red);
-        Debug.DrawLine(hit.point, hit.point + hit.normal, Color.blue);
-
-
-        if (isSlope)
-        {
-            Debug.Log("isSlope");
+        if(moveDir.x == 0 && rigid.velocity.x != 0) {
+            Vector2 breakForce = rigid.velocity.x > 0 ? Vector2.left : Vector2.right;
+            rigid.AddForce(breakForce * breakSpeed);
         }
 
 
@@ -159,24 +144,29 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
+    
     //경사면 확인
-    private void SlopeCheck(RaycastHit2D raycastHit)
+    //ToDo : forntChcker 활용해서 조작감 향상 고려해볼 것
+    private void SlopeCheck()
     {
-        perp = Vector2.Perpendicular(raycastHit.normal).normalized;
-        slopeAngle = Vector2.Angle(raycastHit.normal, perp);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, detectDistance, groundCheckLayer);
+        RaycastHit2D frontHit = Physics2D.Raycast(frontChecker.position, frontChecker.right * transform.localScale.x, 0.1f, groundCheckLayer);
 
-        isSlope = (slopeAngle != 0) ? true:false;
-
-        /*
-        if(slopeAngle != 0)
+        if (DebugMode)
         {
-            isSlope = true;
+            Debug.DrawLine(frontChecker.position, frontChecker.position + frontChecker.right * transform.localScale.x, Color.blue);
+            Debug.DrawLine(hit.point, hit.point + perp, Color.red);
+            Debug.DrawLine(hit.point, hit.point + hit.normal, Color.blue); 
         }
-        else
+        /*
+        if (hit || frontHit)
         {
-            isSlope=false;
+            if (frontHit)
+                hit = frontHit;  
         }*/
+        perp = Vector2.Perpendicular(hit.normal).normalized;
+        slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+        isSlope = (slopeAngle != 0) ? true:false;
     }
 
 
@@ -194,6 +184,7 @@ public class PlayerController : MonoBehaviour
     {
         if (value.isPressed && isGround)
         {
+            isGround=false;
             rigid.velocity = new Vector2(rigid.velocity.x, jumpSpeed);
         }
     }
@@ -247,7 +238,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // lerp하게 고정 좌표로 position 변경
-    // 폐기하거나 조작감 개선 필요
+    // 개선 필요
      IEnumerator NewDashRoutine(Vector3 dashDir)
     {
         isDash = true;
