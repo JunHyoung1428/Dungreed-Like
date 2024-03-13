@@ -129,18 +129,20 @@ public class Skeldog : Monster
         public override void Enter()
         {
             owner.isAttack = true;
-            owner.StartCoroutine(Attackroutine());
+            if(attackCoroutine == null)
+            attackCoroutine =  owner.StartCoroutine(Attackroutine());
             // 진입시 플레이어를 향해 점프 한번 하고 다시 쫓아 다님
             ChangeState(State.Chase);
         }
 
+        Coroutine attackCoroutine;
         IEnumerator Attackroutine()
         {
             //Debug.Log("Attack");
             owner.rb.AddForce(Vector2.up * owner.jumpPower, ForceMode2D.Impulse); //쥐똥만큼 뜀
-            //owner.transform.Translate(Vector3.up * owner.jumpPower * Time.deltaTime);
             yield return new WaitForSeconds(owner.attackCoolTime);
             owner.isAttack = false;
+            attackCoroutine = null;
         }
     }
 

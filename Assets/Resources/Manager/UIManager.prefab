@@ -256,6 +256,7 @@ MonoBehaviour:
   inGameCanvas: {fileID: 8109004608820484364}
   popUpBlocker: {fileID: 242161957115883087}
   inGameBlocker: {fileID: 2747980217241904842}
+  PlayerHPBar: {fileID: 0}
 --- !u!1 &8363939580254005736
 GameObject:
   m_ObjectHideFlags: 0
