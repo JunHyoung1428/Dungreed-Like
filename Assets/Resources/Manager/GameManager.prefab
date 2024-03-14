@@ -44,4 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fcfa33b2f5d5e47b5fc920f8e1da03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floatingDamageText: {fileID: 2402475646302173242, guid: f484ad019ee24eb4cbca7b64e45b577d, type: 3}
+  floatingDamageText: {fileID: 5353427536707616010, guid: f484ad019ee24eb4cbca7b64e45b577d, type: 3}

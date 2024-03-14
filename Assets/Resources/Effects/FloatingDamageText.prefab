@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7754426134449048850}
   - component: {fileID: 5353427536707616010}
-  - component: {fileID: 2402475646302173242}
   - component: {fileID: 326818574901613173}
   - component: {fileID: 4339220426476581289}
   m_Layer: 0
@@ -51,24 +50,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69d1383c76cd1c2438208fc8172642ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  autoRelease: 1
+  releaseTime: 1
   floatingSpeed: 1
   fadeSpeed: 10
-  text: {fileID: 4339220426476581289}
+  TMP: {fileID: 4339220426476581289}
   alpha: {r: 1, g: 1, b: 1, a: 1}
---- !u!114 &2402475646302173242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7414059494818563228}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 481092cc15e545d48820e7d078f98942, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  autoRelease: 1
-  releaseTime: 1.5
 --- !u!23 &326818574901613173
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -131,7 +118,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 7
+  m_text: NULL
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3cdb4457fb475134aae51fd2f374c65f, type: 2}
   m_sharedMaterial: {fileID: 1124009530780441480, guid: 3cdb4457fb475134aae51fd2f374c65f, type: 2}
