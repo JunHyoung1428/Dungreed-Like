@@ -100,7 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handPos: {fileID: 0}
-  effect: {fileID: 8361679270276915590, guid: fcbdf746e2bdfca40b8cb7762031a10b, type: 3}
+  effect: {fileID: 8317959875637339256, guid: fcbdf746e2bdfca40b8cb7762031a10b, type: 3}
   impulse: {fileID: 7037447333555726757}
   attackSpeed: 0
   attackDuration: 0.2

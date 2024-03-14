@@ -16,9 +16,9 @@ public class AshraBow : Weapon
     public override void Attack(Vector3 dir)
     {
         base.Attack(dir);
-        StartCoroutine(AttackRoutine(dir));
+        if(Routine==null)
+            Routine = StartCoroutine(AttackRoutine(dir));
     }
-
     IEnumerator AttackRoutine(Vector3 dir)
     {
         isAttack = true;
@@ -29,11 +29,13 @@ public class AshraBow : Weapon
         target = new Vector3(target.x, target.y, 0);
         for (int i = 0; i < damage; i++)
         {
-            PooledObject pooledObject = Instantiate(effect, transform.position + dir.normalized * 1f, transform.rotation);
-            pooledObject.GetComponent<TraceArrow>().target = target;
+            TraceArrow pooledObject = (TraceArrow)Instantiate(effect, transform.position + dir.normalized * 1f, transform.rotation);
+            pooledObject.damage = damage;
+            pooledObject.target = target;
             yield return new WaitForSeconds(attackDuration);
         }
         yield return new WaitForSeconds(attackCoolTime);           
         isAttack = false;
+        Routine = null;
     }
 }

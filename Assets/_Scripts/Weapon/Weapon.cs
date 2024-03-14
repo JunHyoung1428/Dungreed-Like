@@ -17,6 +17,8 @@ public class Weapon : MonoBehaviour
 
     [SerializeField] protected bool isAttack;
 
+    protected Coroutine Routine;
+
 
     public virtual void Start()
     {

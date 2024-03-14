@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TraceArrow : MonoBehaviour
+public class TraceArrow : PooledObject
 {
-    //베지어곡선 
     Vector2[] point = new Vector2[4];
-    bool hit = false;
 
+    [SerializeField] public int damage;
     [SerializeField][Range(0, 1)] private float t = 0;
     [SerializeField] public float spd = 5;
     [SerializeField][Range(0,30)] public float posA = 0.55f;
@@ -53,8 +52,8 @@ public class TraceArrow : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-            //hit = true;
-            //Destroy(gameObject, 0.35f);
+        IDamagable damagable = collision.GetComponent<IDamagable>();
+        damagable?.TakeDamage(damage*Random.Range(0.8f,1.3f));
     }
 
 
@@ -66,5 +65,3 @@ public class TraceArrow : MonoBehaviour
         + Mathf.Pow(t, 3) * d;
     }
 }
-
-   // 출처: https://tonikat.tistory.com/10 [Touniquet:티스토리]

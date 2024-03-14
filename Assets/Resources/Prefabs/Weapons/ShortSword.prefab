@@ -107,6 +107,10 @@ MonoBehaviour:
   isAttack: 0
   attackForm: 0
   attackRange: 1
+  attackAngle: 60
+  attackableLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &8986911678927571557
 MonoBehaviour:
   m_ObjectHideFlags: 0

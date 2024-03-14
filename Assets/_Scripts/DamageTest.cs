@@ -13,7 +13,6 @@ public class DamageTest : MonoBehaviour
     {
         if (damageCoroutine == null)
         {
-            Debug.Log("damageOn");
             IDamagable damagable = other.GetComponent<IDamagable>();
             damageCoroutine = StartCoroutine(DamageRoutine(damagable));
         }
@@ -23,9 +22,8 @@ public class DamageTest : MonoBehaviour
     private Coroutine damageCoroutine;
     IEnumerator DamageRoutine(IDamagable damagable)
     {
-    
-            damagable?.TakeDamage(damage);
-        yield return new WaitForSeconds(tickTime);
+      damagable?.TakeDamage(damage);
+      yield return new WaitForSeconds(tickTime);
       damageCoroutine = null; 
     }
 }
