@@ -4,7 +4,7 @@ using UnityEngine;
 public class GameManager : Singleton<GameManager>
 {
 
-    [SerializeField] PooledObject floatingDamageText;
+    [SerializeField] FloatingDamage floatingDamageText;
 
 
     public void Start()
@@ -14,8 +14,15 @@ public class GameManager : Singleton<GameManager>
 
     public void ShowFloatingDamage(Transform transform, int damage)
     {
-        PooledObject text = Manager.Pool.GetPool(floatingDamageText, transform.position + new Vector3(0, 0.5f, 0), transform.rotation); 
-        text.GetComponent<TextMeshPro>().text = damage.ToString();
+        FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position + new Vector3(0, 0.5f, 0), transform.rotation); 
+        text.TMP.text = damage.ToString();
+    }
+
+    public void ShowFloatingDamage(Transform transform, int damage, Color color)
+    {
+        FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position + new Vector3(0, 0.5f, 0), transform.rotation);
+        text.TMP.text = damage.ToString();
+        text.TMP.color=color;   
     }
 
     public void Test()
