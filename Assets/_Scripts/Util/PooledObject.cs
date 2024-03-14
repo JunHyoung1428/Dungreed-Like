@@ -9,7 +9,7 @@ public class PooledObject : MonoBehaviour
     private ObjectPool pool;
     public ObjectPool Pool { get { return pool; } set { pool = value; } }
 
-    private void OnEnable()
+    protected void OnEnable()
     {
         if (autoRelease)
         {

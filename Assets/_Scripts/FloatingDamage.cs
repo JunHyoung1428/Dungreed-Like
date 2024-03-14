@@ -14,10 +14,7 @@ public class FloatingDamage : PooledObject
 
     private void OnEnable()
     {
-        if (autoRelease)
-        {
-            StartCoroutine(ReleaseRoutine());
-        }
+        base.OnEnable();
         alpha.a = 255;
         activate = true;
     }
@@ -39,6 +36,4 @@ public class FloatingDamage : PooledObject
     {
         activate = false;   
     }
-
-
 }
