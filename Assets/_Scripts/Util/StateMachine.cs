@@ -6,13 +6,12 @@ public class StateMachine<T> where T : Enum
 {
     private Dictionary<T, BaseState<T> > stateDic = new Dictionary<T, BaseState<T> >();
     private BaseState<T> curState;
-
+    public BaseState<T> CurState { get { return curState; } }
     public void Start(T startState)
     {
         curState = stateDic[startState];
         curState.Enter();
     }
-
     public void Update()
     {
         curState.Update();
