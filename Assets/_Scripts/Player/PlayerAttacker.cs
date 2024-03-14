@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
-public class PlayerAttack : MonoBehaviour
+public class PlayerAttacker : MonoBehaviour
 {
     [SerializeField] Transform body;
     [SerializeField] Transform handPos;
@@ -17,7 +17,7 @@ public class PlayerAttack : MonoBehaviour
 
     [SerializeField] bool activateWeapon=true;
 
-    private Vector3 dir;
+    private Vector2 dir;
     /******************************************************
      *                      Unity Events
      ******************************************************/
@@ -40,9 +40,9 @@ public class PlayerAttack : MonoBehaviour
 
     void Aim()
     {
-        if (dir != Vector3.zero)
+        if (dir != Vector2.zero)
         {
-           dir.z = 0f;
+          
            handPos.localScale = new Vector3(body.localScale.x, handPos.localScale.y, handPos.localScale.z);
            handPos.right = dir.normalized;
         }
