@@ -65,7 +65,7 @@ public class PlayerEffectController : MonoBehaviour
         else
         {
             PooledObject currentGhost = Manager.Pool.GetPool(effectGhostTrail, transform.position, transform.rotation);
-            currentGhost.GetComponent<SpriteRenderer>().sprite = this.GetComponent<SpriteRenderer>().sprite;
+            currentGhost.GetComponent<SpriteRenderer>().flipX = isFlip;//= this.GetComponent<SpriteRenderer>().sprite;
             this.delayTime = this.delay;
         }
         yield return new WaitForSeconds(delay);

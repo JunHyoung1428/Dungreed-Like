@@ -1,9 +1,8 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 
 public enum PlayerStates { Idle, Run, InAir, Jump, DoubleJump, Dash, Die }
@@ -38,9 +37,17 @@ public class IdleState : PlayerState
     {
         effect.state = PlayerEffectController.State.Idle;
         player.rigid.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
-        player.rigid.gravityScale = 20; 
+        player.rigid.gravityScale = 15;
     }
 
+    public override void FixedUpdate()
+    {
+        if (player.rigid.velocity.x != 0)
+        {
+            Vector2 breakForce = player.rigid.velocity.x > 0 ? Vector2.left : Vector2.right;
+            player.rigid.AddForce(breakForce * player.breakSpeed);
+        }
+    }
 
     public override void Transition()
     {
@@ -64,10 +71,18 @@ public class RunState : PlayerState
 {
     public RunState(PlayerController owner) : base(owner) { }
 
+    float slopeAngle;
+    Vector2 perp;
+
     public override void Enter()
     {
         player.animator.SetBool("Run", true);
         effect.state = PlayerEffectController.State.Walk;
+    }
+
+    public override void Update()
+    {
+        SlopeCheck();
     }
 
     public override void FixedUpdate()
@@ -78,7 +93,7 @@ public class RunState : PlayerState
             {
                 player.rigid.velocity = new Vector2(-player.moveSpeed, player.rigid.velocity.y);
                 effect.isFlip = true;
-            } //최대 속도 제어
+            }
             else if (player.moveDir.x > 0 && player.rigid.velocity.x < player.maxSpeed)
             {
                 player.rigid.velocity = new Vector2(player.moveSpeed, player.rigid.velocity.y);
@@ -87,14 +102,30 @@ public class RunState : PlayerState
         }
         else
         {
-            player.rigid.velocity = player.moveDir.x * player.perp * -1 * player.moveSpeed;
+            player.rigid.velocity = player.moveDir.x * perp * -1 * player.moveSpeed;
+        }
+    }
+
+    private void SlopeCheck()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(player.transform.position, Vector2.down, 1f, player.groundCheckLayer);
+        RaycastHit2D frontHit = Physics2D.Raycast(player.frontChecker.position, player.frontChecker.right * player.transform.localScale.x, 0.1f, player.groundCheckLayer);
+
+        if (player.DebugMode)
+        {
+            Debug.DrawLine(player.frontChecker.position, player.frontChecker.position + player.frontChecker.right * player.transform.localScale.x, Color.blue);
+            Debug.DrawLine(hit.point, hit.point + perp, Color.red);
+            Debug.DrawLine(hit.point, hit.point + hit.normal, Color.blue);
         }
 
-        if (player.moveDir.x == 0 && player.rigid.velocity.x != 0)
+        if (hit || frontHit)
         {
-            Vector2 breakForce = player.rigid.velocity.x > 0 ? Vector2.left : Vector2.right;
-            player.rigid.AddForce(breakForce * player.breakSpeed);
+            if (frontHit)
+                hit = frontHit;
         }
+        perp = Vector2.Perpendicular(hit.normal).normalized;
+        slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+        player.isSlope = (slopeAngle > 10) ? true : false;
     }
 
     public override void Transition()
@@ -103,7 +134,7 @@ public class RunState : PlayerState
         {
             ChangeState(PlayerStates.InAir);
         }
-        if (player.moveDir.x == 0)
+        if (player.isGround && player.moveDir.x == 0)
         {
             ChangeState(PlayerStates.Idle);
         }
@@ -124,7 +155,8 @@ public class RunState : PlayerState
 public class InAirState : PlayerState
 {
     protected float maxFallSpeed;
-    public InAirState(PlayerController owner) : base(owner) {
+    public InAirState(PlayerController owner) : base(owner)
+    {
         maxFallSpeed = player.breakSpeed * -2;
     }
 
@@ -136,18 +168,27 @@ public class InAirState : PlayerState
 
     public override void FixedUpdate()
     {
-        if (player.moveDir.x > 0 && player.rigid.velocity.x < player.maxSpeed)
+        if (player.moveDir.x != 0)
         {
-            player.rigid.AddForce(Vector2.right * player.moveSpeed, ForceMode2D.Force);
+            if (player.moveDir.x > 0 && player.rigid.velocity.x < player.maxSpeed)
+            {
+                player.rigid.AddForce(Vector2.right * player.moveSpeed, ForceMode2D.Force);
+            }
+            else if (player.moveDir.x < 0 && player.rigid.velocity.x > -player.maxSpeed)
+            {
+                player.rigid.AddForce(Vector2.left * player.moveSpeed, ForceMode2D.Force);
+            }
         }
-        else if (player.moveDir.x < 0 && player.rigid.velocity.x > -player.maxSpeed)
+        else if ( player.rigid.velocity.x != 0)
         {
-            player.rigid.AddForce(Vector2.left * player.moveSpeed, ForceMode2D.Force);
+            Vector2 breakForce = player.rigid.velocity.x > 0 ? Vector2.left : Vector2.right;
+            player.rigid.AddForce(breakForce * player.breakSpeed);
         }
+
 
         if (player.rigid.velocity.y < maxFallSpeed)
         {
-            player.rigid.velocity= new Vector2(player.rigid.velocity.x,maxFallSpeed);
+            player.rigid.velocity = new Vector2(player.rigid.velocity.x, maxFallSpeed);
         }
     }
 
@@ -156,10 +197,6 @@ public class InAirState : PlayerState
         if (player.isGround)
         {
             ChangeState(PlayerStates.Idle);
-        }
-        if (input.actions["Jump"].IsPressed() && input.actions["Jump"].triggered)
-        {
-            ChangeState(PlayerStates.DoubleJump);
         }
     }
 
@@ -176,7 +213,7 @@ public class JumpState : InAirState
 
     public override void Enter()
     {
-        base.Enter();   
+        base.Enter();
         effect.state = PlayerEffectController.State.Jump;
         player.rigid.velocity = new Vector2(player.rigid.velocity.x, player.jumpSpeed);
     }
@@ -201,44 +238,86 @@ public class DashState : PlayerState
 {
     public DashState(PlayerController owner) : base(owner) { }
 
-    Vector3 dashDir;
+    Vector2 dashDir;
     public override void Enter()
     {
-        if (player.dashCount > 0)
+        player.rigid.gravityScale = 0.1f;
+        dashDir = Camera.main.ScreenToWorldPoint(Input.mousePosition) - player.transform.position;
+        dashDir = dashDir.normalized;
+
+        effect.isFlip = (dashDir.x > 0) ? false : true;
+
+        if (player.dashMode)
         {
-            dashDir = player.mouseDir;
-            dashDir.z = 0;
-            dashDir = dashDir - player.transform.position;
-            if (player.dashMode)
+            DashRoutine = player.StartCoroutine(DashWithMousePos(dashDir));
+        }
+        else
+        {
+            DashRoutine = player.StartCoroutine(DashWithMoveDir());
+        }
+    }
+
+    Coroutine DashRoutine;
+    IEnumerator DashWithMousePos(Vector3 dashDir)
+    {
+        player.isDash = true;
+        effect.makeGhost = player.isDash;
+        player.rigid.velocity = dashDir.normalized * player.dashSpeed; // velocity 말고 transform.position 자체를 옮기는거 고려해 볼것
+        yield return new WaitForSeconds(player.dashTime);
+    
+        player.isDash = false;
+        effect.makeGhost = player.isDash;
+        DashRoutine = null;
+    }
+
+    IEnumerator DashWithMoveDir()
+    {
+        player.isDash = true;
+        effect.makeGhost = player.isDash;
+        player.rigid.velocity = player.moveDir * player.dashSpeed;
+        yield return new WaitForSeconds(player.dashTime);
+
+        player.isDash = false;
+        effect.makeGhost = player.isDash;
+        DashRoutine = null;
+    }
+
+
+
+    public override void Transition()
+    {
+       if(DashRoutine == null)
+        {
+            if(player.isGround)
             {
-                player.StartCoroutine(player.DashWithMousePos(dashDir));
+                ChangeState(PlayerStates.Idle);
             }
             else
             {
-                player.StartCoroutine(player.DashWithMoveDir());
-                //StartCoroutine(DashWithMoveDir());
+                ChangeState(PlayerStates.InAir);
             }
         }
-        ChangeState(PlayerStates.Idle);
     }
-    /*
-    public override void Update()
-    {
-        if (owner.isDash)
-        {
-            owner.rb.velocity = dashDir.normalized * owner.dashSpeed;
-        }
-    }*/
+
+
     public override void Exit()
     {
+        player.rigid.velocity = Vector2.zero;
+        player.rigid.gravityScale = 1f;
+
         //충돌 무시 판정 Off
     }
 }
-
-
 public class DieState : PlayerState
 {
     public DieState(PlayerController owner) : base(owner) { }
 
+    public override void Enter()
+    {
+        Debug.Log("Die");
+
+        player.animator.SetTrigger("Die");
+        player.enabled = false;
+    }
 }
 #endregion

@@ -14,7 +14,9 @@ public class GameManager : Singleton<GameManager>
 
     public void ShowFloatingDamage(Transform transform, int damage)
     {
-        FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position + new Vector3(0, 0.5f, 0), transform.rotation); 
+        float rand = Random.Range(0, 1f);
+        FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position + 
+            new Vector3(rand,rand, 0), transform.rotation); 
         text.TMP.text = damage.ToString();
     }
 

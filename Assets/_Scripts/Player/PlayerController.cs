@@ -85,7 +85,7 @@ public class PlayerController : MonoBehaviour, IDamagable
     private void FixedUpdate()
     {
         stateMachine.FixedUpdate ();
-        Debug.Log(stateMachine.CurState);
+        //Debug.Log(stateMachine.CurState);
     }
     #endregion
 
@@ -143,10 +143,10 @@ public class PlayerController : MonoBehaviour, IDamagable
             DashCoolTimeRoutine = StartCoroutine(DashCoolTime());
         }
     }
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
-        HP -= damage;
-        Manager.Game.ShowFloatingDamage(transform,damage);
+        HP -= (int)damage;
+        Manager.Game.ShowFloatingDamage(transform,(int)damage);
         if(HP< 0)
         {
             stateMachine.ChangeState(PlayerStates.Die);
@@ -192,8 +192,8 @@ public class PlayerController : MonoBehaviour, IDamagable
     }
 
     void OnAttack(InputValue inputValue)
-    {
-        if(inputValue.isPressed && !attacker.isAttack)
+    { 
+        if (inputValue.isPressed && !attacker.isAttack)
         {
             attacker.Attack();
         }

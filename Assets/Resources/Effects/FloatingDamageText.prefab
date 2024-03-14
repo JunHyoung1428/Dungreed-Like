@@ -52,9 +52,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoRelease: 1
   releaseTime: 1
+  TMP: {fileID: 4339220426476581289}
   floatingSpeed: 1
   fadeSpeed: 10
-  TMP: {fileID: 4339220426476581289}
   alpha: {r: 1, g: 1, b: 1, a: 1}
 --- !u!23 &326818574901613173
 MeshRenderer:
@@ -127,8 +127,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278470143
-  m_fontColor: {r: 1, g: 0.27210927, b: 0.0141509175, a: 1}
+    rgba: 4278203075
+  m_fontColor: {r: 0.764151, g: 0.1978877, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -145,8 +145,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 12
-  m_fontSizeBase: 12
+  m_fontSize: 8
+  m_fontSizeBase: 8
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

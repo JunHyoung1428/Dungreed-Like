@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class PooledObject : MonoBehaviour
 {
-    [SerializeField] bool autoRelease;
-    [SerializeField] float releaseTime;
+    [SerializeField] protected bool autoRelease;
+    [SerializeField] protected float releaseTime;
 
     private ObjectPool pool;
     public ObjectPool Pool { get { return pool; } set { pool = value; } }
@@ -17,7 +17,7 @@ public class PooledObject : MonoBehaviour
         }
     }
 
-    IEnumerator ReleaseRoutine()
+    protected IEnumerator ReleaseRoutine()
     {
         yield return new WaitForSeconds(releaseTime);
         Release();
