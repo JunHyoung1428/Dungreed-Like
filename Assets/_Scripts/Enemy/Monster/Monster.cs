@@ -9,9 +9,10 @@ public class Monster : MonoBehaviour, IDamagable
     [SerializeField] protected Animator animator;
     [SerializeField] protected SpriteRenderer spriteRenderer;
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
-       hp -= damage;
+       hp -= (int)damage;
+       Manager.Game.ShowFloatingDamage(transform, (int)damage);
     }
 
     protected virtual void Start()
