@@ -13,11 +13,11 @@ public class PlayerAttacker : MonoBehaviour
     private Weapon[] weapons;
 
     [SerializeField] float attackDuration;
-    [SerializeField] bool isAttack;
+    [SerializeField] public bool isAttack;
 
-    [SerializeField] bool activateWeapon=true;
+    [SerializeField] int activateWeaponIndex =0;
 
-    private Vector2 dir;
+    private Vector3 dir;
     /******************************************************
      *                      Unity Events
      ******************************************************/
@@ -40,9 +40,9 @@ public class PlayerAttacker : MonoBehaviour
 
     void Aim()
     {
-        if (dir != Vector2.zero)
+        if (dir != Vector3.zero)
         {
-          
+           dir.z = 0f;
            handPos.localScale = new Vector3(body.localScale.x, handPos.localScale.y, handPos.localScale.z);
            handPos.right = dir.normalized;
         }
@@ -52,37 +52,33 @@ public class PlayerAttacker : MonoBehaviour
      ******************************************************/
 
 
-    void OnAttack(InputValue inputValue)
+    public void Attack()
     {
-        if (inputValue.isPressed && !isAttack)
-        {
-           if(activateWeapon)
-            {
-                weapons[0]!.Attack(dir);
-            }
-            else
-            {
-                weapons[1]!.Attack(dir);
-            }
-        }
+        weapons[activateWeaponIndex]!.Attack(dir);
     }
 
-    void OnSwap(InputValue input)
+    void OnSwap(InputValue inputValue)
     {
-        if(input.isPressed)
+        float input =inputValue.Get<float>();
+
+        if (input !=0)
         {
-            if(activateWeapon)
+            Weapons[activateWeaponIndex].SetActive(false);
+            float newWeaponIndex = activateWeaponIndex + input;
+
+            if (newWeaponIndex < 0)
             {
-                activateWeapon = false;
-                Weapons[0].SetActive(false);
-                Weapons[1].SetActive(true);
+                activateWeaponIndex = weapons.Length - 1;
+            }
+            else if (newWeaponIndex >= weapons.Length)
+            {
+                activateWeaponIndex = 0;
             }
             else
             {
-                activateWeapon = true;
-                Weapons[0].SetActive(true);
-                Weapons[1].SetActive(false);
+                activateWeaponIndex = (int)newWeaponIndex;
             }
+            Weapons[activateWeaponIndex].SetActive(true);
         }
     }
 }
