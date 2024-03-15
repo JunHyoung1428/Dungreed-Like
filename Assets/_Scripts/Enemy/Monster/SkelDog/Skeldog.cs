@@ -158,7 +158,7 @@ public class Skeldog : Monster
 
         IEnumerator DieRoutine()
         {
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(0.1f);
             Destroy(owner.gameObject);
         }
     }

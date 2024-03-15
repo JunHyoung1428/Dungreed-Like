@@ -105,7 +105,7 @@ MonoBehaviour:
   t: 0
   spd: 1
   posA: 5
-  posB: 4.3
+  posB: 3.8
   master: {fileID: 0}
   target: {x: 0, y: 0, z: 0}
 --- !u!58 &1931086266192845876

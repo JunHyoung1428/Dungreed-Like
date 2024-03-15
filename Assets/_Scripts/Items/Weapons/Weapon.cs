@@ -3,32 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Weapon : MonoBehaviour
+public class Weapon : Item
 {
+    [Header("Weapon")]
     [SerializeField] protected Transform handPos;
     [SerializeField] protected PooledObject effect;
     [SerializeField] protected CinemachineImpulseSource impulse;
 
-
-    [SerializeField] protected float attackSpeed;
     [SerializeField] protected float attackDuration;
-
     [SerializeField] protected int damage;
 
-    [SerializeField] protected bool isAttack;
-
     protected Coroutine Routine;
+    protected bool attackType; // 근거리 true, 원거리 false 로 쓰면 될..려나?
 
 
-    public virtual void Start()
+    protected override void Start()
     {
+        base.Start();
         Manager.Pool.CreatePool(effect, 5, 5);
     }
     
 
     public virtual void Attack(Vector3 dir)
     {
-        if (isAttack) return;
     }
 
     protected void Shake(float roughness)

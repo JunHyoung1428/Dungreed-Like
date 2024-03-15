@@ -199,7 +199,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7df076bf158321748b0833e6208b5d4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hp: 10
+  maxHp: 75
+  hp: 75
   animator: {fileID: 0}
   spriteRenderer: {fileID: 0}
   rb: {fileID: 0}

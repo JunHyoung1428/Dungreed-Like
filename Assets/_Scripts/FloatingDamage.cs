@@ -12,7 +12,7 @@ public class FloatingDamage : PooledObject
 
     bool activate;
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
         base.OnEnable();
         alpha.a = 255;

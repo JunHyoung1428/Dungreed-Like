@@ -12,6 +12,7 @@ public class TraceArrow : PooledObject
     [SerializeField][Range(0,30)] public float posA = 0.55f;
     [SerializeField][Range(0,30)] public float posB = 0.45f;
 
+    bool hit;
     public GameObject master;
     public Vector3 target;
 
@@ -27,7 +28,7 @@ public class TraceArrow : PooledObject
     void FixedUpdate()
     {
         if (t > 1) return;
-        //if (hit) return;
+        if (hit) return;
         t += Time.deltaTime * spd;
         DrawTrajectory();
     }
@@ -63,5 +64,10 @@ public class TraceArrow : PooledObject
         + Mathf.Pow((1 - t), 2) * 3 * t * b
         + Mathf.Pow(t, 2) * 3 * (1 - t) * c
         + Mathf.Pow(t, 3) * d;
+    }
+
+    public void OnDisable()
+    {
+        hit = false;
     }
 }

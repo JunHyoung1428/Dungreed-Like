@@ -74,7 +74,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 8b714b4b229d98143a8d812699833d56, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -98,13 +98,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 282ceacdb71ff6a4cb33fa933f97eecf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rarity: 0
+  itemName: 
+  flavorText: "\uAC00\uBCCD\uACE0 \uD718\uB450\uB974\uAE30 \uD3B8\uD55C \uAC80"
+  sprite: {fileID: 0}
   handPos: {fileID: 0}
   effect: {fileID: 6316758789456260063, guid: 7c0b74c2af548e74fb7956e6cbea0a62, type: 3}
   impulse: {fileID: 8986911678927571557}
-  attackSpeed: 0
   attackDuration: 0.3
   damage: 3
-  isAttack: 0
   attackForm: 0
   attackRange: 1
   attackAngle: 60

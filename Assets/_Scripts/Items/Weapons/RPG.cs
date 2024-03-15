@@ -13,7 +13,6 @@ public class RPG : Weapon
 
     IEnumerator AttackRoutine(Vector3 dir)
     {
-        isAttack = true;
         if(isImpulse)Shake(damage*5);
         for (int i = 0; i < damage; i++)
         {
@@ -24,6 +23,5 @@ public class RPG : Weapon
             pooledObject.GetComponent<TraceArrow>().target = target;
             yield return new WaitForSeconds(attackDuration);
         }
-        isAttack = false;
     }
 }

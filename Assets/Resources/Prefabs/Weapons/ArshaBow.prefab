@@ -75,7 +75,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 08d38a77de9463b41bc3d0062b00adf4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -99,13 +99,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29d3fae80ecfe3f49892813f6b8bfcd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rarity: 3
+  name: "\uD0B9\uC9F1\uD65C"
+  flavorText: "\uC9F1\uC148"
+  sprite: {fileID: 0}
   handPos: {fileID: 0}
   effect: {fileID: 8317959875637339256, guid: fcbdf746e2bdfca40b8cb7762031a10b, type: 3}
   impulse: {fileID: 7037447333555726757}
-  attackSpeed: 0
   attackDuration: 0.2
   damage: 10
-  isAttack: 1
   isImpulse: 0
   attackCoolTime: 0.5
   animator: {fileID: 4538054075054942360}

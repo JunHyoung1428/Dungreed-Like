@@ -28,6 +28,11 @@ public class PlayerAttacker : MonoBehaviour
         {
             weapons[i] = Weapons[i].GetComponent<Weapon>(); //나중에 인벤토리에서 무기 교체시에도 새로 갱신해줘야함
         }
+
+        if (!Weapons[0].activeSelf)
+        {
+            Weapons[0].SetActive(true);
+        }
     }
 
 

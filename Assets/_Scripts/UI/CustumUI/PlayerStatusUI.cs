@@ -19,11 +19,12 @@ public class PlayerStatusUI : MonoBehaviour
     {
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
         player.OnChangeHP+= UpdateHP ;
+        UpdateHP(player.MaxHP,player.HP);
     }
     
     private void UpdateHP(int maxHP, int HP)
     {
-        hpBar.fillAmount = (float)HP / (float)maxHP;
+        hpBar.fillAmount = HP / (float)maxHP;
         hpText.text = $"{HP.ToString()}/{maxHP.ToString()}";
     }
 

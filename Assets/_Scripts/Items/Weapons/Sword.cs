@@ -10,7 +10,7 @@ public class Sword : Weapon
 
 
     float cosAngle;
-    public override void Start()
+    protected override void Start()
     {
         base.Start();
         cosAngle = Mathf.Cos(attackAngle * Mathf.Deg2Rad);
@@ -29,7 +29,6 @@ public class Sword : Weapon
     //TODO: 공격시 충돌 판정으로 Damage 주는거
     IEnumerator AttackRoutine(Vector3 dir)
     {
-        isAttack = true;
         if (attackForm)
         {
             handPos.localScale = new Vector3(handPos.localScale.x, -1, handPos.localScale.z);
@@ -57,7 +56,6 @@ public class Sword : Weapon
 
         Shake(damage);
         yield return new WaitForSeconds(attackDuration);
-        isAttack = false;
         Routine = null;
     }
 }
