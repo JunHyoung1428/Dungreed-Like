@@ -236,7 +236,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (groundCheckLayer.Contain(collision.gameObject.layer))
+        if (groundCheckLayer.Contain(collision.gameObject.layer) && rigid.velocity.y <=0) // 플랫폼 아래에서 위로 통과 할 때 를 위해 y속도 조건 추가 
         {
             isGround = true;
             jumpCount = maxJumpCount;
