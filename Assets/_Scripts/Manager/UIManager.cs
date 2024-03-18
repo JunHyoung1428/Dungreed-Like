@@ -12,11 +12,26 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] Image popUpBlocker;
     [SerializeField] Button inGameBlocker;
 
-    [SerializeField] Image PlayerHPBar;
+   
 
     private Stack<PopUpUI> popUpStack = new Stack<PopUpUI>();
     private float prevTimeScale;
     private InGameUI curInGameUI;
+
+    public InventoryUI inventory;
+    public bool isOpenInventory = false;
+    public void OpenInventory()
+    {
+        if (!isOpenInventory)
+        {
+            inventory.inventoryBase.SetActive(true);
+        }
+        else
+        {
+            inventory.inventoryBase.SetActive(false);
+        }
+        isOpenInventory = !isOpenInventory;
+    }
 
     private void Start()
     {
@@ -32,7 +47,6 @@ public class UIManager : Singleton<UIManager>
         EventSystem eventSystem = Resources.Load<EventSystem>("UI/EventSystem");
         Instantiate(eventSystem);
     }
-
     public T ShowPopUpUI<T>(T popUpUI) where T : PopUpUI
     {
         if (popUpStack.Count > 0)

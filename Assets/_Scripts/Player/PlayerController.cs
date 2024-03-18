@@ -193,9 +193,18 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     void OnAttack(InputValue inputValue)
     { 
-        if (inputValue.isPressed && !attacker.isAttack)
+        if (inputValue.isPressed && !attacker.isAttack && !Manager.UI.isOpenInventory)
         {
             attacker.Attack();
+        }
+    }
+
+    private void OnOpenInventory(InputValue inputValue)
+    {
+        if (inputValue.isPressed)
+        {
+            Debug.Log("V");
+            Manager.UI.OpenInventory();
         }
     }
 

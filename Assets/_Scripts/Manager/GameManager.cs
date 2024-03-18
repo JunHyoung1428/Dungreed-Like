@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
@@ -6,11 +5,12 @@ public class GameManager : Singleton<GameManager>
 
     [SerializeField] FloatingDamage floatingDamageText;
 
-
     public void Start()
     {
         CreatePool();
     }
+
+   
 
     public void CreatePool()
     {
@@ -20,8 +20,8 @@ public class GameManager : Singleton<GameManager>
     public void ShowFloatingDamage(Transform transform, int damage)
     {
         float rand = Random.Range(0, 1f);
-        FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position + 
-            new Vector3(rand,rand, 0), transform.rotation); 
+        FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position +
+            new Vector3(rand, rand, 0), transform.rotation);
         text.TMP.text = damage.ToString();
     }
 
@@ -29,7 +29,7 @@ public class GameManager : Singleton<GameManager>
     {
         FloatingDamage text = (FloatingDamage)Manager.Pool.GetPool(floatingDamageText, transform.position + new Vector3(0, 0.5f, 0), transform.rotation);
         text.TMP.text = damage.ToString();
-        text.TMP.color=color;   
+        text.TMP.color = color;
     }
 
     public void Test()

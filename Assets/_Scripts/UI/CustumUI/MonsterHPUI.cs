@@ -23,7 +23,6 @@ public class MonsterHPUI : MonoBehaviour
         {
             hpBarBG.SetActive(true);
         }
-
         hpBar.fillAmount = HP / (float)maxHP;
     }
 }

@@ -45,3 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   floatingDamageText: {fileID: 5353427536707616010, guid: f484ad019ee24eb4cbca7b64e45b577d, type: 3}
+  inventory: {fileID: 160566684611794743, guid: 82d1ebe713ebb0641be1139e93477def, type: 3}
