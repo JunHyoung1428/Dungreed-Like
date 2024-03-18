@@ -9,6 +9,11 @@ public class GameManager : Singleton<GameManager>
 
     public void Start()
     {
+        CreatePool();
+    }
+
+    public void CreatePool()
+    {
         Manager.Pool.CreatePool(floatingDamageText, 10, 10);
     }
 
