@@ -17,9 +17,13 @@ public class Skeldog : Monster
 
     [SerializeField] float chaseRange;
     [SerializeField] float attackRange;
+    [SerializeField] float attackDamage;
     [SerializeField] float moveSpeed;
     [SerializeField] float jumpPower;
     [SerializeField] float attackCoolTime;
+
+    [SerializeField] LayerMask attackableLayer;
+
     bool isAttack;
    
     private StateMachine<State> stateMachine = new StateMachine<State>();
@@ -108,6 +112,11 @@ public class Skeldog : Monster
 
         public override void Transition()
         {
+            if (owner.hp <= 0)
+            {
+                ChangeState(State.Die);
+            }
+
             if (Vector2.Distance(owner.target.position, owner.transform.position) > owner.chaseRange) //거리가 멀어지면
             {
                 ChangeState(State.Idle);
@@ -126,22 +135,33 @@ public class Skeldog : Monster
     private class AttackState : SkeldogState
     {
         public AttackState(Skeldog owner) : base(owner) { }
+
+        Collider2D[] colliders = new Collider2D[10];
+        Vector2 range;
+
         public override void Enter()
         {
-            owner.isAttack = true;
             if(attackCoroutine == null)
             attackCoroutine =  owner.StartCoroutine(Attackroutine());
-            // 진입시 플레이어를 향해 점프 한번 하고 다시 쫓아 다님
             ChangeState(State.Chase);
         }
 
         Coroutine attackCoroutine;
         IEnumerator Attackroutine()
         {
-            //Debug.Log("Attack");
-            owner.rb.AddForce(Vector2.up * owner.jumpPower, ForceMode2D.Impulse); //쥐똥만큼 뜀
+           
+            owner.rb.AddForce(Vector2.up * owner.jumpPower, ForceMode2D.Impulse);
+
+            int size = Physics2D.OverlapCircleNonAlloc(owner.transform.position, owner.attackRange, colliders, owner.attackableLayer); 
+            for (int i = 0; i < size; i++)
+            {
+                range = (colliders[i].transform.position - owner.transform.position).normalized;
+
+                IDamagable damagable = colliders[i].GetComponent<IDamagable>();
+                damagable?.TakeDamage(owner.attackDamage);
+            }
+
             yield return new WaitForSeconds(owner.attackCoolTime);
-            owner.isAttack = false;
             attackCoroutine = null;
         }
     }

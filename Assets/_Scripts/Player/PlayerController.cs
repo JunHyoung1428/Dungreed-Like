@@ -208,6 +208,29 @@ public class PlayerController : MonoBehaviour, IDamagable
         }
     }
 
+    private void OnInteract(InputValue inputValue)
+    {
+        if (inputValue.isPressed)
+        {
+            Interact();
+        }
+    }
+
+    Collider2D[] colliders = new Collider2D[10];
+    private void Interact()
+    {
+        int size = Physics2D.OverlapCircleNonAlloc(transform.position, 1f, colliders);
+        for (int i = 0; i < size; i++)
+        {
+            IInteractable interactable = colliders[i].GetComponent<IInteractable>();
+            if (interactable != null)
+            {
+                interactable.Interact(this);
+                break;
+            }
+        }
+    }
+
 
     //Dash 마우스 에임기준 대쉬랑 moveDir 기준 Dash 두가지 옵션 있음
     void OnDash(InputValue value)
@@ -245,7 +268,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (groundCheckLayer.Contain(collision.gameObject.layer) && rigid.velocity.y <=0) // 플랫폼 아래에서 위로 통과 할 때 를 위해 y속도 조건 추가 
+        if (groundCheckLayer.Contain(collision.gameObject.layer) && rigid.velocity.y <=0.01) // 플랫폼 아래에서 위로 통과 할 때 를 위해 y속도 조건 추가 
         {
             isGround = true;
             jumpCount = maxJumpCount;

@@ -194,17 +194,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 383f2179e7065e54eb0382f7484cefde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHp: 0
-  hp: 10
+  maxHp: 30
+  hp: 30
   animator: {fileID: 0}
   spriteRenderer: {fileID: 0}
   rb: {fileID: 0}
   target: {fileID: 0}
-  chaseRange: 6
-  attackRange: 2
+  chaseRange: 10
+  attackRange: 1
+  attackDamage: 5
   moveSpeed: 5
   jumpPower: 1
   attackCoolTime: 1
+  attackableLayer:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!1001 &640514397657423179
 PrefabInstance:
   m_ObjectHideFlags: 0

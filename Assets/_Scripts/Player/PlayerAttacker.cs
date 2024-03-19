@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Net.NetworkInformation;
-using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UIElements;
 
 public class PlayerAttacker : MonoBehaviour
 {
@@ -15,7 +12,7 @@ public class PlayerAttacker : MonoBehaviour
     [SerializeField] float attackDuration;
     [SerializeField] public bool isAttack;
 
-    [SerializeField] int activateWeaponIndex =0;
+    [SerializeField] int activateWeaponIndex = 0;
 
     private Vector3 dir;
     /******************************************************
@@ -23,16 +20,7 @@ public class PlayerAttacker : MonoBehaviour
      ******************************************************/
     private void Start()
     {
-        weapons = new Weapon[Weapons.Length];
-        for (int i = 0; i < Weapons.Length; i++)
-        {
-            weapons[i] = Weapons[i].GetComponent<Weapon>(); //나중에 인벤토리에서 무기 교체시에도 새로 갱신해줘야함
-        }
-
-        if (!Weapons[0].activeSelf)
-        {
-            Weapons[0].SetActive(true);
-        }
+        InitWeaponList();
     }
 
 
@@ -43,19 +31,39 @@ public class PlayerAttacker : MonoBehaviour
             Aim();
     }
 
+
+    /******************************************************
+     *                    Methods
+     ******************************************************/
+
     void Aim()
     {
         if (dir != Vector3.zero)
         {
-           dir.z = 0f;
-           handPos.localScale = new Vector3(body.localScale.x, handPos.localScale.y, handPos.localScale.z);
-           handPos.right = dir.normalized;
+            dir.z = 0f;
+            handPos.localScale = new Vector3(body.localScale.x, handPos.localScale.y, handPos.localScale.z);
+            handPos.right = dir.normalized;
         }
     }
-    /******************************************************
-     *                     Input Action Events
-     ******************************************************/
 
+    void InitWeaponList()
+    {
+        weapons = new Weapon[Weapons.Length];
+        for (int i = 0; i < Weapons.Length; i++)
+        {
+            weapons[i] = Weapons[i].GetComponent<Weapon>();
+        }
+
+        if (!Weapons[0].activeSelf)
+        {
+            Weapons[0].SetActive(true);
+        }
+    }
+
+    public void GetWeapon(GameObject weapon)
+    {
+        // Weapons.Add(weapons);
+    }
 
     public void Attack()
     {
@@ -64,9 +72,9 @@ public class PlayerAttacker : MonoBehaviour
 
     void OnSwap(InputValue inputValue)
     {
-        float input =inputValue.Get<float>();
+        float input = inputValue.Get<float>();
 
-        if (input !=0)
+        if (input != 0)
         {
             Weapons[activateWeaponIndex].SetActive(false);
             float newWeaponIndex = activateWeaponIndex + input;

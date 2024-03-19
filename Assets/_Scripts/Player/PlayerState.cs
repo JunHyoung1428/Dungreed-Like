@@ -227,7 +227,7 @@ public class DoubleJumpState : InAirState
     {
         base.Enter();
         effect.state = PlayerEffectController.State.DoubleJump;
-        player.rigid.velocity = new Vector2(player.rigid.velocity.x, player.jumpSpeed * 0.75f);
+        player.rigid.velocity = new Vector2(player.rigid.velocity.x, player.jumpSpeed * 0.9f);
     }
 }
 #endregion

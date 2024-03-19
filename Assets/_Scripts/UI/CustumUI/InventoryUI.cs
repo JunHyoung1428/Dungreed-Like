@@ -30,11 +30,11 @@ public class InventoryUI : MonoBehaviour
 
     private void Update()
     {
-        _ped.position = Input.mousePosition;
+       // _ped.position = Input.mousePosition;
 
-        OnPointerDown();
-        OnPointerDrag();
-        OnPointerUp();
+       // OnPointerDown();
+       // OnPointerDrag();
+       // OnPointerUp();
     }
 
     private T RaycastAndGetFirstComponent<T>() where T : Component

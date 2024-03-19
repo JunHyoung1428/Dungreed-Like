@@ -20,6 +20,7 @@ public class UIManager : Singleton<UIManager>
 
     public InventoryUI inventory;
     public bool isOpenInventory = false;
+
     public void OpenInventory()
     {
         if (!isOpenInventory)

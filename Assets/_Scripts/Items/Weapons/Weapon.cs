@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Weapon : Item
+public class Weapon : Item, IInteractable
 {
     [Header("Weapon")]
     [SerializeField] protected Transform handPos;
@@ -14,7 +14,7 @@ public class Weapon : Item
     [SerializeField] protected int damage;
 
     protected Coroutine Routine;
-    protected bool attackType; // 근거리 true, 원거리 false 로 쓰면 될..려나?
+    protected bool attackType;
 
 
     protected override void Start()
@@ -33,4 +33,9 @@ public class Weapon : Item
         impulse.GenerateImpulseWithForce(roughness/20);
     }
 
+    public void Interact(PlayerController player)
+    {
+        //player.attacker.GetWeapon(this); Attacker는 오브젝트를 List로 가지는데, 문제는 오브젝트 자체를 스크립트에서 넘겨줄수는 없음
+        //추후 리팩토링을 통해 Weapon과 Weapondata들의 분리와 이를 통한 방법이 필요
+    }
 }

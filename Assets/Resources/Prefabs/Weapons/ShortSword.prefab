@@ -106,7 +106,7 @@ MonoBehaviour:
   effect: {fileID: 6316758789456260063, guid: 7c0b74c2af548e74fb7956e6cbea0a62, type: 3}
   impulse: {fileID: 8986911678927571557}
   attackDuration: 1
-  damage: 3
+  damage: 5
   attackForm: 0
   attackRange: 1
   attackAngle: 60

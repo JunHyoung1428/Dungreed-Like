@@ -91,4 +91,14 @@ public class SceneManager : Singleton<SceneManager>
             yield return null;
         }
     }
+
+    public void PublicFadeOut()
+    {
+        StartCoroutine(FadeOut());
+    }
+
+    public void PublicFadeIn()
+    {
+        StartCoroutine(FadeIn());
+    }
 }

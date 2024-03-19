@@ -41,7 +41,7 @@ public class Sword : Weapon
         }
        PooledObject pooledObject = Manager.Pool.GetPool(effect, transform.position + dir.normalized * attackRange, transform.rotation);
 
-        int size = Physics2D.OverlapCircleNonAlloc(transform.position, attackRange, colliders, attackableLayer);
+        int size = Physics2D.OverlapCircleNonAlloc(transform.position, attackRange*2, colliders, attackableLayer);
         for (int i = 0; i < size; i++)
         {
             range = (colliders[i].transform.position - transform.position).normalized;
@@ -50,7 +50,7 @@ public class Sword : Weapon
             
             if (Vector2.Dot(range, dir) > cosAngle)
             {
-                damagable.TakeDamage(damage);
+                damagable.TakeDamage(damage * Random.Range(0.5f, 1.5f));
             }
         }
 

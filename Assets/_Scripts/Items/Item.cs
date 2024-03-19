@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Item : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
-{
+public class Item : MonoBehaviour
+{ 
     [Header("Item")]
     [SerializeField] Rarity rarity;
     [SerializeField] string itemName;
@@ -20,23 +20,7 @@ public class Item : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
     protected virtual void Start()
     {
-        sprite = GetComponent<SpriteRenderer>();
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        Debug.Log("EndDrag");
         
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        Debug.Log("BeginDrag");
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        if(isDroped)
-            transform.position = Input.mousePosition;
-    }
 }

@@ -10,7 +10,8 @@ public class TitleScene : BaseScene
 
     public void StartGame()
     {
-        Manager.Scene.LoadScene("GameScene");
+        Manager.Scene.LoadScene("Demo_Dungeon");
+       // Manager.Scene.LoadScene("GameScene");
     }
 
     public void ExitGame()

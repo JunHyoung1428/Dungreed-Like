@@ -15,6 +15,7 @@ public class MinimapUI : MonoBehaviour
     [Header("Images")]
     [SerializeField] Image minimapImage;
     [SerializeField] Image minimapPlayerImage;
+    [SerializeField]  Vector2 defaultPos;
 
     [Header("Player")]
     [SerializeField] PlayerController player;
@@ -24,10 +25,13 @@ public class MinimapUI : MonoBehaviour
     void Start()
     {
         player = FindAnyObjectByType<PlayerController>();
-        minimapPlayerImage.enabled = true;
+        if(player != null )
+        {
+            minimapPlayerImage.enabled = true;
+        }
+        defaultPos = minimapPlayerImage.rectTransform.localPosition;
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (!isMinimapOpen) return;
@@ -40,5 +44,21 @@ public class MinimapUI : MonoBehaviour
 
             minimapPlayerImage.rectTransform.anchoredPosition = new Vector2(minimapImage.rectTransform.sizeDelta.x * nomalPos.x , minimapImage.rectTransform.sizeDelta.y * nomalPos.y) ;
         }
+    }
+
+    public void SetNewAnchor(Transform top, Transform bottom , Transform left, Transform right)
+    {
+        this.top = top;
+        this.bottom = bottom;
+        this.left = left;
+        this.right = right;
+        minimapPlayerImage.rectTransform.anchoredPosition = defaultPos;
+    }
+
+    public void TurnOff()
+    {
+        isMinimapOpen = false;
+        minimapImage.enabled = false;
+        minimapPlayerImage.enabled = false;
     }
 }

@@ -258,6 +258,8 @@ MonoBehaviour:
   popUpBlocker: {fileID: 242161957115883087}
   inGameBlocker: {fileID: 2747980217241904842}
   inventory: {fileID: 906669439259729454}
+  isOpenInventory: 0
+  minimapUI: {fileID: 8248392228401248286, guid: 5df70c2982fff934984449577a6dec9f, type: 3}
 --- !u!1 &8363939580254005736
 GameObject:
   m_ObjectHideFlags: 0
