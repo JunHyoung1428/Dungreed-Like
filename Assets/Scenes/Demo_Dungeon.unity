@@ -32962,6 +32962,9 @@ MonoBehaviour:
   groundCheckLayer:
     serializedVersion: 2
     m_Bits: 384
+  platformLayer:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &676877769
 MonoBehaviour:
   m_ObjectHideFlags: 0

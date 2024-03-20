@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
 
     [SerializeField] public LayerMask groundCheckLayer;
-
+    [SerializeField] LayerMask platformLayer;
 
     private StateMachine<PlayerStates> stateMachine;
 
@@ -259,7 +259,7 @@ public class PlayerController : MonoBehaviour, IDamagable
     #region Collider/Trigger Event
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (isDown)
+        if (isDown && (1 << collision.gameObject.layer & platformLayer) != 0)
         {
             Physics2D.IgnoreCollision(collision.gameObject.GetComponent<Collider2D>(), gameObject.GetComponent<Collider2D>(), true);
             stateMachine.ChangeState(PlayerStates.InAir);
