@@ -15,7 +15,7 @@
 
 <br/> <br/> 
 ## ✨Features
-### 🕹️ Move & Effect
+### 🕹️ [Player Move & Effect](https://github.com/JunHyoung1428/Dungreed-Like/tree/master/Assets/_Scripts/Player)
 ![Dungreed-move2](https://github.com/JunHyoung1428/Dungreed-Like/assets/154119773/44a6fa35-29ae-4230-ab62-dd9e3d76c84a)
 
 - ``FSM``패턴을 활용한 ``PlayerController``
